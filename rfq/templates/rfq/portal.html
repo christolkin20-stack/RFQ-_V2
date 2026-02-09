@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Portal | OptiChain RFQ</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+        }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .brand { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .card { background: var(--surface); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 24px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; color: var(--text-muted); font-size: 14px; }
+        .info-val { display: block; color: var(--text); font-weight: 600; font-size: 16px; margin-top: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        input.form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        input.form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+        
+        .btn { display: inline-block; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .status-sent { background: #e2e8f0; color: #475569; }
+        .status-replied { background: #dcfce7; color: #166534; }
+        .status-approved { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="brand">⚡ OptiChain RFQ Portal</div>
+            <div class="status-badge status-{{ access.status }}">{{ access.status }}</div>
+        </div>
+
+        <!-- Project Info -->
+        <div class="card">
+            <div class="title">Request for Quotation</div>
+            <div class="info-grid">
+                <div>Project <span class="info-val">{{ project_name }}</span></div>
+                <div>Supplier <span class="info-val">{{ supplier_name }}</span></div>
+                <div>Date <span class="info-val">{% now "Y-m-d" %}</span></div>
+            </div>
+        </div>
+
+        {% if access.status == 'sent' or access.status == 'viewed' %}
+        <form id="quote-form">
+            <!-- Items Table -->
+            <div class="card">
+                <div class="title">Requested Items</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:25%;">Drawing No. / MPN</th>
+                                <th style="width:30%;">Description</th>
+                                <th style="width:10%;">Qty</th>
+                                <th style="width:15%;">Unit Price (EUR)</th>
+                                <th style="width:20%;">Lead Time / Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in access.requested_items %}
+                            <tr data-dn="{{ item.drawing_no }}">
+                                <td>
+                                    <b>{{ item.drawing_no }}</b><br>
+                                    <span style="font-size:12px; color:#666;">{{ item.mpn }}</span>
+                                </td>
+                                <td>{{ item.description }}</td>
+                                <td style="text-align:center; font-weight:600;">{{ item.qty_1 }}</td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control inp-price" placeholder="0.00" required>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control inp-lead" placeholder="e.g. 4 weeks">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" style="text-align:center; padding:30px; color:#999;">No items requested.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="card">
+                <div class="title">Additional Notes</div>
+                <textarea id="notes" class="form-control" rows="4" placeholder="Optional remarks, shipping terms, or questions..."></textarea>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="submit" id="btn-submit" class="btn">Submit Quote</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 60px;">
+            <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+            <div class="title">Quote Received</div>
+            <p style="color: #64748b;">Thank you! Your quotation has been submitted successfully.</p>
+            <p style="color: #64748b; font-size:13px; margin-top:10px;">Submitted on: {{ access.replied_at|default:"Just now" }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        const TOKEN = "{{ token }}";
+        
+        document.getElementById('quote-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = "Submitting...";
+            
+            // Collect Data
+            const prices = {};
+            const lead_times = {};
+            
+            document.querySelectorAll('tbody tr').forEach(tr => {
+                const dn = tr.getAttribute('data-dn');
+                const p = tr.querySelector('.inp-price').value;
+                const l = tr.querySelector('.inp-lead').value;
+                if(p) prices[dn] = parseFloat(p);
+                if(l) lead_times[dn] = l;
+            });
+            
+            const payload = {
+                prices,
+                lead_times,
+                notes: document.getElementById('notes').value
+            };
+            
+            try {
+                const res = await fetch(`/api/supplier_access/${TOKEN}/submit`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                if(res.ok) {
+                    location.reload();
+                } else {
+                    alert("Error submitting quote. Please try again.");
+                    btn.disabled = false;
+                    btn.innerText = "Submit Quote";
+                }
+            } catch(err) {
+                console.error(err);
+                alert("Network error.");
+                btn.disabled = false;
+                btn.innerText = "Submit Quote";
+            }
+        });
+    </script>
+</body>
+</html>

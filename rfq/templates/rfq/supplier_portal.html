@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Quote Portal | {{ project.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* TOPBAR */
+        .portal-topbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            min-height: 48px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .portal-topbar-brand {
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .portal-topbar-spacer {
+            flex: 1;
+        }
+
+        .portal-topbar-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .portal-topbar-info .tb-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.4);
+            display: block;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .portal-topbar-info .tb-value {
+            font-weight: 600;
+            color: #fff;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .portal-countdown {
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .portal-countdown.urgent {
+            background: rgba(239,68,68,0.2);
+            color: #fca5a5;
+        }
+
+        .portal-countdown.ok {
+            background: rgba(34,197,94,0.15);
+            color: #86efac;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .brand h1 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: -0.3px;
+        }
+
+        .round-badge {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .supplier-center {
+            flex: 1;
+            text-align: center;
+        }
+
+        .supplier-center-name {
+            font-weight: 800;
+            font-size: 22px;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .supplier-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-item div {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* TABLE */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* INPUTS */
+        .inp-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        td .inp-control {
+            padding: 6px 8px;
+            font-size: 13px;
+            min-width: 70px;
+        }
+
+        .inp-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .inp-control:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        textarea.inp-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-ghost:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        /* EXPORT DROPDOWN */
+        .export-dropdown-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-dropdown {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            min-width: 190px;
+            z-index: 100;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+
+        .export-dropdown.open {
+            display: block;
+        }
+
+        .export-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 11px 16px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .export-dropdown button:hover {
+            background: #f1f5f9;
+        }
+
+        .export-dropdown button + button {
+            border-top: 1px solid var(--border);
+        }
+
+        /* FILE UPLOAD */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #fdfdfd;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .file-chip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        /* STATUS */
+        .status-sent {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .status-viewed {
+            background: #f0f9ff;
+            color: #0ea5e9;
+        }
+
+        .status-submitted {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-rejected {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .status-re_quote_requested {
+            background: #fff7ed;
+            color: #f97316;
+        }
+
+        .status-lost {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .status-expired {
+            background: #f1f5f9;
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fff7ed;
+            border-color: #f97316;
+            color: #9a3412;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- TOPBAR -->
+    <div class="portal-topbar">
+        <span class="portal-topbar-brand">OPTICHAIN</span>
+        <span class="portal-topbar-spacer"></span>
+        <div class="portal-topbar-info">
+            <div>
+                <span class="tb-label">Date &amp; Time</span>
+                <span class="tb-value" id="topbar-clock">--</span>
+            </div>
+            {% if access.valid_until %}
+            <div class="portal-countdown" id="topbar-countdown-wrap">
+                <span class="tb-label">Due In</span>
+                <span class="tb-value" id="topbar-countdown">--</span>
+            </div>
+            {% endif %}
+            <div>
+                <span class="tb-label">Supplier</span>
+                <span class="tb-value">{{ access.supplier_name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <h1>Quote Request</h1>
+                <span class="round-badge">Round {{ access.round|default:"1" }}</span>
+            </div>
+            <div class="supplier-center">
+                <span class="supplier-center-name">{{ access.supplier_name }}</span>
+            </div>
+            <div class="supplier-info">
+                <span class="status-badge status-{{ access.status }}">{% if access.get_status_display %}{{ access.get_status_display }}{% else %}{{ access.status }}{% endif %}</span>
+            </div>
+        </header>
+
+        {% if error_message %}
+        <div class="alert alert-error"><strong>Error</strong> {{ error_message }}</div>
+        {% endif %}
+
+        {% if access.status == 'approved' %}
+        <div class="alert alert-success">
+            <strong>Approved</strong>
+            Your quote has been approved. Thank you for your cooperation.
+        </div>
+        {% elif access.status == 'lost' %}
+        <div class="alert alert-error">
+            <strong>Closed</strong>
+            This request has been closed.
+        </div>
+        {% elif access.status == 'submitted' %}
+        <div class="alert alert-info">
+            <strong>Submitted</strong>
+            Thank you! Your quote is under review.
+        </div>
+        {% endif %}
+
+        {% if access.rejection_reason %}
+        <div class="alert alert-warning">
+            <strong>Update from Buyer</strong>
+            {{ access.rejection_reason }}
+        </div>
+        {% endif %}
+
+        {% if not access.is_editable %}
+        <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+            {% if submission.reopen_requested %}
+            <button class="btn" disabled style="background:#94a3b8; cursor:default;">Re-Opening Requested</button>
+            {% else %}
+            <button class="btn" id="btn-request-reopen" onclick="requestReopen()" style="background:#f59e0b; color:#0f172a;">
+                Request Re-Opening
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form id="quote-form" onsubmit="event.preventDefault(); submitQuote();">
+            {% csrf_token %}
+            {% with is_editable=access.is_editable %}
+
+            {% if is_cancelled %}
+            <div class="alert alert-error" style="text-align:center; padding:40px;">
+                <h2 style="margin:0 0 8px 0;">This portal link has been cancelled.</h2>
+                <p style="margin:0; color:var(--text-muted);">Please contact the buyer if you believe this is an error.</p>
+            </div>
+            {% endif %}
+
+            <!-- PROJECT DETAILS -->
+            <div class="card">
+                <h2 style="justify-content:space-between;">Project Information
+                    <div class="export-dropdown-wrap">
+                        <button type="button" class="btn-ghost" onclick="toggleExportMenu()" style="padding:5px 12px; font-size:12px;">
+                            &#128196; Export &#9662;
+                        </button>
+                        <div class="export-dropdown" id="export-dropdown-top">
+                            <button type="button" onclick="exportAsPDF()">&#128196; Export as PDF</button>
+                            <button type="button" onclick="exportAsExcel()">&#128202; Export as Excel</button>
+                            <button type="button" onclick="exportAsCSV()">&#128203; Export as CSV</button>
+                        </div>
+                    </div>
+                </h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <label>Project Name</label>
+                        <div>{{ project.name }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <label>Validity</label>
+                        <div>{{ access.valid_until|date:"M d, Y"|default:"Open" }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <label>Contact Person</label>
+                        <div>{{ access.contact_name|default:"Purchasing Team" }}</div>
+                    </div>
+                    {% if access.contact_email %}
+                    <div class="meta-item">
+                        <label>Email</label>
+                        <div><a href="mailto:{{ access.contact_email }}" style="color:var(--primary);">{{ access.contact_email }}</a></div>
+                    </div>
+                    {% endif %}
+                    {% if access.contact_phone %}
+                    <div class="meta-item">
+                        <label>Phone</label>
+                        <div>{{ access.contact_phone }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <p style="color:var(--text-muted); margin:0;">
+                    {{ access.instruction_message|default:"Please provide your best pricing and lead times for the items below." }}
+                    {% if not is_editable %}
+                    <span style="color:#ef4444; font-weight:600;">(Read Only)</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- QUOTE DETAILS -->
+            <div class="card">
+                <h2>Quote Details</h2>
+                <div class="meta-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="meta-item">
+                        <label>Currency</label>
+                        <select id="inp-currency" class="inp-control" {{ is_editable|yesno:",disabled" }}>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                            <option value="CZK">CZK</option>
+                            <option value="GBP">GBP</option>
+                            <option value="CHF">CHF</option>
+                            <option value="PLN">PLN</option>
+                            <option value="CNY">CNY</option>
+                            <option value="JPY">JPY</option>
+                        </select>
+                    </div>
+                    <div class="meta-item">
+                        <label>Incoterms</label>
+                        <select id="inp-incoterms" class="inp-control" {{ is_editable|yesno:",disabled" }}>
+                            <option value="">— Select —</option>
+                            <option value="EXW">EXW</option>
+                            <option value="FCA">FCA</option>
+                            <option value="FOB">FOB</option>
+                            <option value="CIF">CIF</option>
+                            <option value="CIP">CIP</option>
+                            <option value="DAP">DAP</option>
+                            <option value="DDP">DDP</option>
+                        </select>
+                    </div>
+                    <div class="meta-item">
+                        <label>Payment Terms</label>
+                        <input type="text" id="inp-payment-terms" class="inp-control" placeholder="e.g. Net 30" {{ is_editable|yesno:",disabled" }}>
+                    </div>
+                    <div class="meta-item">
+                        <label>Shipping Cost</label>
+                        <input type="number" step="0.01" id="inp-shipping" class="inp-control" placeholder="0.00" min="0" {{ is_editable|yesno:",disabled" }}>
+                    </div>
+                    <div class="meta-item">
+                        <label>Quote Reference #</label>
+                        <input type="text" id="inp-quote-number" class="inp-control" placeholder="Your quote number" {{ is_editable|yesno:",disabled" }}>
+                    </div>
+                    <div class="meta-item">
+                        <label>Quote Valid Until</label>
+                        <input type="date" id="inp-quote-valid" class="inp-control" {{ is_editable|yesno:",disabled" }}>
+                    </div>
+                    <div class="meta-item">
+                        <label>Packaging</label>
+                        <input type="text" id="inp-packaging" class="inp-control" placeholder="e.g. Carton, Pallet" {{ is_editable|yesno:",disabled" }}>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUPPLIER CONTACT INFO -->
+            <div class="card">
+                <h2>Your Contact Information</h2>
+                <div class="meta-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="meta-item">
+                        <label>Contact Name</label>
+                        <input type="text" id="inp-supplier-contact-name" class="inp-control"
+                            placeholder="Your name" {{ is_editable|yesno:",disabled" }}
+                            value="{{ submission.supplier_contact_name|default:'' }}">
+                    </div>
+                    <div class="meta-item">
+                        <label>Email</label>
+                        <input type="email" id="inp-supplier-contact-email" class="inp-control"
+                            placeholder="your@email.com" {{ is_editable|yesno:",disabled" }}
+                            value="{{ submission.supplier_contact_email|default:'' }}">
+                    </div>
+                    <div class="meta-item">
+                        <label>Phone</label>
+                        <input type="tel" id="inp-supplier-contact-phone" class="inp-control"
+                            placeholder="+1 234 567 890" {{ is_editable|yesno:",disabled" }}
+                            value="{{ submission.supplier_contact_phone|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEMS TABLE -->
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div style="padding:24px 24px 16px 24px; border-bottom:1px solid var(--border);">
+                    <h2 style="margin:0;">Requested Items — Pricing</h2>
+                </div>
+                <div class="table-wrapper" style="border:none; border-radius:0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:30px;">#</th>
+                                <th>Item No</th>
+                                <th style="min-width:105px;">Manufacturer</th>
+                                <th style="min-width:130px;">MPN</th>
+                                <th style="max-width:280px;">Description</th>
+                                {% for tier in qty_tiers %}
+                                    <th style="text-align:center;">{{ tier.label }}</th>
+                                {% empty %}
+                                    <th>Unit Price</th>
+                                {% endfor %}
+                                <th>MOQ</th>
+                                <th>Lead Time</th>
+                                <th style="width:80px; text-align:center;">No Bid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr class="item-row" data-id="{{ item.id }}"
+                                data-drawing-no="{{ item.item_drawing_no|default:item.drawing_no }}"
+                                data-mpn="{{ item.mpn }}"
+                                data-manufacturer="{{ item.manufacturer|default:'' }}"
+                                data-description="{{ item.description|default:'' }}"
+                                data-uom="{{ item.uom|default:'pcs' }}"
+                                data-max-tiers="{{ max_tiers }}"
+                                {% for tv in item.tier_values %}data-qty{{ tv.index }}="{{ tv.qty }}" {% endfor %}>
+                                <td style="color:var(--text-muted);">{{ forloop.counter }}</td>
+                                <td>
+                                    <div style="font-weight:600; color:var(--text-main); white-space:nowrap;">
+                                        {{ item.item_drawing_no|default:item.drawing_no }}
+                                        {% if item.line %}<span style="color:var(--text-muted); font-weight:400; font-size:11px;">(#{{ item.line }})</span>{% endif %}
+                                    </div>
+                                </td>
+                                <td style="font-size:13px;">{{ item.manufacturer|default:"-" }}</td>
+                                <td style="font-size:13px;">{{ item.mpn|default:"-" }}</td>
+                                <td style="font-size:12px; color:var(--text-muted); max-width:280px;">{{ item.description|default:"-" }}</td>
+                                {% for tv in item.tier_values %}
+                                <td style="text-align:center;">
+                                {% if tv.has_qty %}
+                                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;font-weight:700;text-decoration:underline;">{{ tv.qty }} {{ item.uom|default:"pcs" }}</div>
+                                    <input type="number" step="0.0001" class="inp-control {{ tv.input_class }}" placeholder="0.00"
+                                        min="0" aria-label="Price tier {{ tv.index }}" {{ is_editable|yesno:",disabled" }}
+                                        value="{{ tv.submitted_price }}">
+                                {% else %}
+                                    <span style="color:var(--text-muted);font-size:11px;">—</span>
+                                {% endif %}
+                                </td>
+                                {% endfor %}
+                                {% if not item.tier_values %}<td>
+                                    <input type="number" step="0.0001" class="inp-control inp-price" placeholder="0.00"
+                                        min="0" required aria-label="Unit price" {{ is_editable|yesno:",disabled" }}
+                                        value="{{ item.submitted_price|default:'' }}">
+                                </td>{% endif %}
+                                <td>
+                                    <input type="text" class="inp-control inp-moq" placeholder="MOQ"
+                                        value="{{ item.submitted_moq|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                                <td>
+                                    <input type="text" class="inp-control inp-lead" placeholder="e.g. 4 Weeks"
+                                        value="{{ item.submitted_lead_time|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                                <td style="text-align:center;">
+                                    <label style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+                                        <input type="checkbox" class="inp-no-bid" {{ is_editable|yesno:",disabled" }}
+                                            {% if item.submitted_no_bid %}checked{% endif %}>
+                                        <span style="font-size:10px; color:var(--text-muted);">Decline</span>
+                                    </label>
+                                    <input type="text" class="inp-control inp-no-bid-reason" placeholder="Reason..."
+                                        style="display:{% if item.submitted_no_bid %}block{% else %}none{% endif %}; margin-top:4px; font-size:11px; padding:6px;"
+                                        value="{{ item.submitted_no_bid_reason|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- UPDATED ITEMS (added after portal was generated) -->
+            {% if updated_items %}
+            <div class="card" style="padding:0; overflow:hidden; border-left:4px solid #f59e0b;">
+                <div style="padding:24px 24px 16px 24px; border-bottom:1px solid var(--border); background:#fffbeb;">
+                    <h2 style="margin:0; color:#92400e;">Updated Items
+                        <span style="font-size:13px; font-weight:400; color:#a16207; margin-left:8px;">
+                            Added {{ updated_items.0.added_at|truncatechars:10 }}
+                        </span>
+                    </h2>
+                </div>
+                <div class="table-wrapper" style="border:none; border-radius:0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:30px;">#</th>
+                                <th>Item No</th>
+                                <th style="min-width:105px;">Manufacturer</th>
+                                <th style="min-width:130px;">MPN</th>
+                                <th style="max-width:280px;">Description</th>
+                                {% for tier in qty_tiers %}
+                                    <th style="text-align:center;">{{ tier.label }}</th>
+                                {% empty %}
+                                    <th>Unit Price</th>
+                                {% endfor %}
+                                <th>MOQ</th>
+                                <th>Lead Time</th>
+                                <th style="width:80px; text-align:center;">No Bid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in updated_items %}
+                            <tr class="item-row" data-id="{{ item.id }}"
+                                data-drawing-no="{{ item.item_drawing_no|default:item.drawing_no }}"
+                                data-mpn="{{ item.mpn }}"
+                                data-manufacturer="{{ item.manufacturer|default:'' }}"
+                                data-description="{{ item.description|default:'' }}"
+                                data-uom="{{ item.uom|default:'pcs' }}"
+                                data-max-tiers="{{ max_tiers }}"
+                                {% for tv in item.tier_values %}data-qty{{ tv.index }}="{{ tv.qty }}" {% endfor %}>
+                                <td style="color:var(--text-muted);">{{ forloop.counter }}</td>
+                                <td>
+                                    <div style="font-weight:600; color:var(--text-main); white-space:nowrap;">
+                                        {{ item.item_drawing_no|default:item.drawing_no }}
+                                        {% if item.line %}<span style="color:var(--text-muted); font-weight:400; font-size:11px;">(#{{ item.line }})</span>{% endif %}
+                                    </div>
+                                </td>
+                                <td style="font-size:13px;">{{ item.manufacturer|default:"-" }}</td>
+                                <td style="font-size:13px;">{{ item.mpn|default:"-" }}</td>
+                                <td style="font-size:12px; color:var(--text-muted); max-width:280px;">{{ item.description|default:"-" }}</td>
+                                {% for tv in item.tier_values %}
+                                <td style="text-align:center;">
+                                {% if tv.has_qty %}
+                                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;font-weight:700;text-decoration:underline;">{{ tv.qty }} {{ item.uom|default:"pcs" }}</div>
+                                    <input type="number" step="0.0001" class="inp-control {{ tv.input_class }}" placeholder="0.00"
+                                        min="0" aria-label="Price tier {{ tv.index }}" {{ is_editable|yesno:",disabled" }}
+                                        value="{{ tv.submitted_price }}">
+                                {% else %}
+                                    <span style="color:var(--text-muted);font-size:11px;">—</span>
+                                {% endif %}
+                                </td>
+                                {% endfor %}
+                                {% if not item.tier_values %}<td>
+                                    <input type="number" step="0.0001" class="inp-control inp-price" placeholder="0.00"
+                                        min="0" required aria-label="Unit price" {{ is_editable|yesno:",disabled" }}
+                                        value="{{ item.submitted_price|default:'' }}">
+                                </td>{% endif %}
+                                <td>
+                                    <input type="text" class="inp-control inp-moq" placeholder="MOQ"
+                                        value="{{ item.submitted_moq|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                                <td>
+                                    <input type="text" class="inp-control inp-lead" placeholder="e.g. 4 Weeks"
+                                        value="{{ item.submitted_lead_time|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                                <td style="text-align:center;">
+                                    <label style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+                                        <input type="checkbox" class="inp-no-bid" {{ is_editable|yesno:",disabled" }}
+                                            {% if item.submitted_no_bid %}checked{% endif %}>
+                                        <span style="font-size:10px; color:var(--text-muted);">Decline</span>
+                                    </label>
+                                    <input type="text" class="inp-control inp-no-bid-reason" placeholder="Reason..."
+                                        style="display:{% if item.submitted_no_bid %}block{% else %}none{% endif %}; margin-top:4px; font-size:11px; padding:6px;"
+                                        value="{{ item.submitted_no_bid_reason|default:'' }}" {{ is_editable|yesno:",disabled" }}>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ADDITIONAL INFO SECTION -->
+            <div class="card">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+                    <!-- NOTES -->
+                    <div>
+                        <h2>Comments / Notes</h2>
+                        <textarea id="inp-notes" class="inp-control"
+                            placeholder="Additional remarks, conditions, or notes..." {{
+                            is_editable|yesno:",disabled" }}>{{ submission.notes|default:'' }}</textarea>
+                    </div>
+
+                    <!-- FILE UPLOAD -->
+                    <div>
+                        <h2>Attachments</h2>
+                        <div style="color:var(--text-muted); font-size:13px; margin-bottom:12px;">Technical drawings,
+                            datasheets, or formal quotes (PDF/XLSX).</div>
+
+                        {% if is_editable %}
+                        <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Upload files — click or drag and drop" onclick="document.getElementById('file-input').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file-input').click();}">
+                            <div style="font-size:24px; margin-bottom:8px;">📂</div>
+                            <div style="font-weight:500;">Click to Upload</div>
+                            <div style="font-size:12px; color:var(--text-muted);">or drag and drop files</div>
+                            <input type="file" id="file-input" multiple style="display:none;" aria-label="Choose files to upload"
+                                onchange="handleFiles(this.files)">
+                        </div>
+                        {% endif %}
+
+                        <div id="file-list" class="file-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:60px; flex-wrap:wrap; gap:12px;">
+                <div style="display:flex; gap:8px;">
+                    <div class="export-dropdown-wrap">
+                        <button type="button" class="btn-ghost" onclick="toggleExportMenu()" style="padding:8px 16px;">
+                            <span style="margin-right:4px;">&#128196;</span> Export Information &#9662;
+                        </button>
+                        <div class="export-dropdown" id="export-dropdown">
+                            <button type="button" onclick="exportAsPDF()">&#128196; Export as PDF</button>
+                            <button type="button" onclick="exportAsExcel()">&#128202; Export as Excel</button>
+                            <button type="button" onclick="exportAsCSV()">&#128203; Export as CSV</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    {% if is_editable %}
+                    <button type="button" class="btn" id="btn-save-draft" onclick="saveDraft()"
+                        style="background:#475569; box-shadow:0 4px 6px -1px rgba(71,85,105,0.2);">
+                        Save for Later
+                    </button>
+                    <button type="button" class="btn" onclick="leavePortal()"
+                        style="background:#fee2e2; color:#991b1b; box-shadow:0 4px 6px -1px rgba(220,38,38,0.15);">
+                        Leave
+                    </button>
+                    <button type="submit" class="btn" id="btn-submit"
+                        style="background:#16a34a; box-shadow:0 4px 6px -1px rgba(22,163,74,0.25);">
+                        Submit Quotation
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% endwith %}
+        </form>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" role="status" aria-live="polite"
+        style="position:fixed; bottom:24px; right:24px; background:#1e293b; color:white; padding:12px 24px; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); transform:translateY(100px); opacity:0; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index:10200;">
+        Saved Successfully!
+    </div>
+
+    <script>
+        // --- FILE HANDLING LOGIC ---
+        const selectedFiles = new DataTransfer();
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                selectedFiles.items.add(files[i]);
+            }
+            renderFiles();
+        }
+
+        function renderFiles() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            Array.from(selectedFiles.files).forEach((file, idx) => {
+                const div = document.createElement('div');
+                div.className = 'file-chip';
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        <span>📎</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-weight:500; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:280px;">${file.name}</span>
+                            <span style="font-size:11px; color:#94a3b8;">${(file.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-ghost" onclick="removeFile(${idx})">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        window.removeFile = function (idx) {
+            const dt = new DataTransfer();
+            Array.from(selectedFiles.files).forEach((f, i) => {
+                if (i !== idx) dt.items.add(f);
+            });
+            selectedFiles.items.clear();
+            Array.from(dt.files).forEach(f => selectedFiles.items.add(f));
+            renderFiles();
+        };
+
+        // --- DRAG & DROP ---
+        const dropZone = document.getElementById('drop-zone');
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                handleFiles(dt.files);
+            }, false);
+        }
+
+        // --- VIEW TRACKING + PRE-POPULATE ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const status = "{{ access.status }}";
+            if (['sent', 're_quote_requested'].includes(status)) {
+                try {
+                    await fetch("{% url 'api_supplier_access_viewed' access.id %}", {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                    });
+                } catch (e) { console.warn("Track view failed", e); }
+            }
+
+            // Pre-populate quote-level fields from previous submission
+            const subCurrency = "{{ submission.currency|default:'' }}";
+            const subIncoterms = "{{ submission.incoterms|default:'' }}";
+            const subPaymentTerms = "{{ submission.payment_terms|default:'' }}";
+            const subShipping = "{{ submission.shipping|default:'' }}";
+            const subQuoteNumber = "{{ submission.quote_number|default:'' }}";
+            const subQuoteValid = "{{ submission.quote_valid_until|default:'' }}";
+            const subPackaging = "{{ submission.packaging|default:'' }}";
+
+            if (subCurrency) { const el = document.getElementById('inp-currency'); if (el) el.value = subCurrency; }
+            if (subIncoterms) { const el = document.getElementById('inp-incoterms'); if (el) el.value = subIncoterms; }
+            if (subPaymentTerms) { const el = document.getElementById('inp-payment-terms'); if (el) el.value = subPaymentTerms; }
+            if (subShipping) { const el = document.getElementById('inp-shipping'); if (el) el.value = subShipping; }
+            if (subQuoteNumber) { const el = document.getElementById('inp-quote-number'); if (el) el.value = subQuoteNumber; }
+            if (subQuoteValid) { const el = document.getElementById('inp-quote-valid'); if (el) el.value = subQuoteValid; }
+            if (subPackaging) { const el = document.getElementById('inp-packaging'); if (el) el.value = subPackaging; }
+
+            // --- NO BID TOGGLE ---
+            document.querySelectorAll('.inp-no-bid').forEach(cb => {
+                function toggleRow(checkbox) {
+                    const row = checkbox.closest('.item-row');
+                    if (!row) return;
+                    const checked = checkbox.checked;
+                    const reasonEl = row.querySelector('.inp-no-bid-reason');
+                    // Disable/enable price + MOQ + lead inputs
+                    row.querySelectorAll('.inp-price, .inp-price2, .inp-price3, .inp-moq, .inp-lead').forEach(inp => {
+                        inp.disabled = checked;
+                        inp.style.opacity = checked ? '0.4' : '1';
+                    });
+                    if (reasonEl) {
+                        reasonEl.style.display = checked ? 'block' : 'none';
+                    }
+                }
+                // Initialize state on load (for re-display of submitted No Bid items)
+                toggleRow(cb);
+                cb.addEventListener('change', () => toggleRow(cb));
+            });
+        });
+
+        // --- SUBMISSION LOGIC ---
+        let isSubmitting = false;
+
+        async function submitQuote() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+            try {
+                const rows = document.querySelectorAll('.item-row');
+                const items = Array.from(rows).map(row => {
+                    const priceEl = row.querySelector('.inp-price');
+                    const price2El = row.querySelector('.inp-price2');
+                    const price3El = row.querySelector('.inp-price3');
+                    const noBidEl = row.querySelector('.inp-no-bid');
+                    const noBidReasonEl = row.querySelector('.inp-no-bid-reason');
+                    return {
+                        id: row.getAttribute('data-id'),
+                        item_drawing_no: row.getAttribute('data-drawing-no'),
+                        mpn: row.getAttribute('data-mpn'),
+                        price: priceEl ? priceEl.value : '',
+                        price_2: price2El ? price2El.value : '',
+                        price_3: price3El ? price3El.value : '',
+                        moq: row.querySelector('.inp-moq').value,
+                        lead_time: row.querySelector('.inp-lead').value,
+                        no_bid: noBidEl ? noBidEl.checked : false,
+                        no_bid_reason: noBidReasonEl ? noBidReasonEl.value : ''
+                    };
+                });
+                const notes = document.getElementById('inp-notes').value;
+                const currency = document.getElementById('inp-currency').value;
+                const incoterms = document.getElementById('inp-incoterms').value;
+                const payment_terms = document.getElementById('inp-payment-terms').value;
+                const shipping = document.getElementById('inp-shipping').value;
+                const quote_number = document.getElementById('inp-quote-number').value;
+                const quote_valid_until = document.getElementById('inp-quote-valid').value;
+                const packaging = document.getElementById('inp-packaging').value;
+                const supplier_contact_name = document.getElementById('inp-supplier-contact-name').value;
+                const supplier_contact_email = document.getElementById('inp-supplier-contact-email').value;
+                const supplier_contact_phone = document.getElementById('inp-supplier-contact-phone').value;
+
+                // FormData
+                const formData = new FormData();
+                formData.append('data', JSON.stringify({
+                    items, notes, currency, incoterms, payment_terms,
+                    shipping, quote_number, quote_valid_until, packaging,
+                    supplier_contact_name, supplier_contact_email, supplier_contact_phone
+                }));
+                Array.from(selectedFiles.files).forEach(f => {
+                    formData.append('files[]', f);
+                });
+
+                const response = await fetch("{% url 'api_supplier_portal_submit' access.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const toast = document.getElementById('toast');
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    let errMsg = 'Submission failed (status ' + response.status + ')';
+                    try { const err = await response.json(); errMsg = err.error || errMsg; } catch {}
+                    alert('Error: ' + errMsg);
+                    btn.disabled = false;
+                    btn.innerText = 'Submit Quotation';
+                    isSubmitting = false;
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.innerText = 'Submit Quotation';
+                isSubmitting = false;
+            }
+        }
+
+        // --- TOPBAR CLOCK & COUNTDOWN ---
+        (function() {
+            const clockEl = document.getElementById('topbar-clock');
+            const countdownEl = document.getElementById('topbar-countdown');
+            const countdownWrap = document.getElementById('topbar-countdown-wrap');
+            const dueDate = "{{ access.valid_until|date:'c' }}";
+
+            function pad(n) { return String(n).padStart(2, '0'); }
+
+            function updateClock() {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+                if (clockEl) clockEl.textContent = dateStr + '  ' + timeStr;
+
+                if (countdownEl && dueDate) {
+                    const due = new Date(dueDate);
+                    const diff = due - now;
+                    if (diff <= 0) {
+                        countdownEl.textContent = 'Overdue';
+                        if (countdownWrap) { countdownWrap.classList.remove('ok'); countdownWrap.classList.add('urgent'); }
+                    } else {
+                        const days = Math.floor(diff / 86400000);
+                        const hrs = Math.floor((diff % 86400000) / 3600000);
+                        const mins = Math.floor((diff % 3600000) / 60000);
+                        const secs = Math.floor((diff % 60000) / 1000);
+                        let text = '';
+                        if (days > 0) text += days + 'd ';
+                        text += pad(hrs) + ':' + pad(mins) + ':' + pad(secs);
+                        countdownEl.textContent = text;
+                        if (countdownWrap) {
+                            if (days < 2) { countdownWrap.classList.remove('ok'); countdownWrap.classList.add('urgent'); }
+                            else { countdownWrap.classList.remove('urgent'); countdownWrap.classList.add('ok'); }
+                        }
+                    }
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        })();
+
+        // --- COLLECT FORM DATA HELPER ---
+        function collectFormData() {
+            const rows = document.querySelectorAll('.item-row');
+            const items = Array.from(rows).map(row => {
+                const noBidEl = row.querySelector('.inp-no-bid');
+                const noBidReasonEl = row.querySelector('.inp-no-bid-reason');
+                const maxTiers = parseInt(row.getAttribute('data-max-tiers')) || 0;
+                const itemData = {
+                    id: row.getAttribute('data-id'),
+                    item_drawing_no: row.getAttribute('data-drawing-no'),
+                    mpn: row.getAttribute('data-mpn'),
+                    manufacturer: row.getAttribute('data-manufacturer'),
+                    description: row.getAttribute('data-description') || '',
+                    uom: row.getAttribute('data-uom') || 'pcs',
+                    moq: row.querySelector('.inp-moq') ? row.querySelector('.inp-moq').value : '',
+                    lead_time: row.querySelector('.inp-lead') ? row.querySelector('.inp-lead').value : '',
+                    no_bid: noBidEl ? noBidEl.checked : false,
+                    no_bid_reason: noBidReasonEl ? noBidReasonEl.value : ''
+                };
+                // Dynamic qty + price tiers
+                for (let i = 1; i <= maxTiers; i++) {
+                    itemData['qty_' + i] = row.getAttribute('data-qty' + i) || '';
+                    const cls = i === 1 ? '.inp-price' : '.inp-price' + i;
+                    const el = row.querySelector(cls);
+                    const priceKey = i === 1 ? 'price' : 'price_' + i;
+                    itemData[priceKey] = el ? el.value : '';
+                }
+                return itemData;
+            });
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+            return {
+                items: items,
+                notes: getVal('inp-notes'),
+                currency: getVal('inp-currency'),
+                incoterms: getVal('inp-incoterms'),
+                payment_terms: getVal('inp-payment-terms'),
+                shipping: getVal('inp-shipping'),
+                quote_number: getVal('inp-quote-number'),
+                quote_valid_until: getVal('inp-quote-valid'),
+                packaging: getVal('inp-packaging'),
+                supplier_contact_name: getVal('inp-supplier-contact-name'),
+                supplier_contact_email: getVal('inp-supplier-contact-email'),
+                supplier_contact_phone: getVal('inp-supplier-contact-phone')
+            };
+        }
+
+        // Build price column headers (generic — qty varies per item)
+        function _getPriceHeaders(items) {
+            let maxTier = 0;
+            items.forEach(function(it) {
+                for (let i = 1; i <= 10; i++) {
+                    if (it['qty_' + i] !== undefined && it['qty_' + i] !== '') maxTier = i;
+                }
+            });
+            if (maxTier === 0) return ['Unit Price'];
+            const headers = [];
+            for (let i = 1; i <= maxTier; i++) headers.push('Price (Tier ' + i + ')');
+            return headers;
+        }
+
+        // --- EXPORT DROPDOWN TOGGLE ---
+        function toggleExportMenu() {
+            // Find the dropdown nearest to the clicked button
+            event.stopPropagation();
+            const wrap = event.target.closest('.export-dropdown-wrap');
+            if (!wrap) return;
+            const dd = wrap.querySelector('.export-dropdown');
+            // Close all other dropdowns first
+            document.querySelectorAll('.export-dropdown.open').forEach(d => { if (d !== dd) d.classList.remove('open'); });
+            dd.classList.toggle('open');
+        }
+        // Close all export dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.export-dropdown-wrap')) {
+                document.querySelectorAll('.export-dropdown.open').forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        // --- EXPORT HELPERS ---
+        function _getExportMeta() {
+            return {
+                project: "{{ project.name|escapejs }}",
+                supplier: "{{ access.supplier_name|escapejs }}",
+                round: "{{ access.round|default:'1' }}",
+                status: "{{ access.status }}",
+                valid_until: "{{ access.valid_until|date:'c'|default:'' }}",
+                exported_at: new Date().toISOString()
+            };
+        }
+
+        function _filePrefix() {
+            return 'quote_export_' + "{{ access.supplier_name|escapejs }}".replace(/\W/g, '_') + '_' + new Date().toISOString().slice(0, 10);
+        }
+
+        function _escHtml(val) {
+            const s = String(val || '');
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function _csvCell(v) {
+            return '"' + String(v || '').replace(/"/g, '""') + '"';
+        }
+
+        function _downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        }
+
+        function _closeAllExportMenus() {
+            document.querySelectorAll('.export-dropdown.open').forEach(d => d.classList.remove('open'));
+        }
+
+        // --- EXPORT AS CSV ---
+        function exportAsCSV() {
+            _closeAllExportMenus();
+            const data = collectFormData();
+            const meta = _getExportMeta();
+            const ph = _getPriceHeaders(data.items);
+
+            let csv = 'OPTICHAIN - Quote Export\r\n';
+            csv += 'Project,' + _csvCell(meta.project) + '\r\n';
+            csv += 'Supplier,' + _csvCell(meta.supplier) + '\r\n';
+            csv += 'Round,' + _csvCell(meta.round) + '\r\n';
+            csv += 'Status,' + _csvCell(meta.status) + '\r\n';
+            csv += 'Due Date,' + _csvCell(meta.valid_until || 'Open') + '\r\n';
+            csv += 'Currency,' + _csvCell(data.currency) + '\r\n';
+            csv += 'Incoterms,' + _csvCell(data.incoterms) + '\r\n';
+            csv += 'Payment Terms,' + _csvCell(data.payment_terms) + '\r\n';
+            csv += 'Shipping,' + _csvCell(data.shipping) + '\r\n';
+            csv += 'Quote Number,' + _csvCell(data.quote_number) + '\r\n';
+            csv += 'Packaging,' + _csvCell(data.packaging) + '\r\n';
+            csv += 'Notes,' + _csvCell(data.notes) + '\r\n';
+            csv += '\r\nRequested Items\r\n';
+
+            // Build headers with qty + price pairs per tier
+            const headers = ['#', 'Item No', 'Manufacturer', 'MPN', 'Description'];
+            for (let t = 0; t < ph.length; t++) {
+                headers.push('QTY ' + (t + 1));
+                headers.push(ph[t]);
+            }
+            headers.push('MOQ', 'Lead Time', 'No Bid', 'No Bid Reason');
+            csv += headers.map(h => _csvCell(h)).join(',') + '\r\n';
+
+            data.items.forEach((it, i) => {
+                const row = [i + 1, it.item_drawing_no, it.manufacturer, it.mpn, it.description];
+                for (let t = 0; t < ph.length; t++) {
+                    row.push(it['qty_' + (t + 1)] || '');
+                    const pk = t === 0 ? 'price' : 'price_' + (t + 1);
+                    row.push(it[pk] || '');
+                }
+                row.push(it.moq, it.lead_time, it.no_bid ? 'Yes' : '', it.no_bid_reason);
+                csv += row.map(v => _csvCell(v)).join(',') + '\r\n';
+            });
+
+            _downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }), _filePrefix() + '.csv');
+        }
+
+        // --- EXPORT AS EXCEL ---
+        function exportAsExcel() {
+            _closeAllExportMenus();
+            const data = collectFormData();
+            const meta = _getExportMeta();
+            const ph = _getPriceHeaders(data.items);
+
+            // Count columns (qty+price pair per tier)
+            const totalCols = 5 + (ph.length * 2) + 4; // #, ItemNo, Mfr, MPN, Desc + (qty+price)*tiers + MOQ, Lead, NoBid, Reason
+
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
+            html += '<head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+            html += '<x:Name>Quote</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>';
+            html += '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+            html += '<table>';
+
+            // Title
+            html += '<tr><td colspan="' + totalCols + '" style="font-size:18pt;font-weight:bold;padding:8px;">OPTICHAIN - Quote Export</td></tr>';
+            html += '<tr><td></td></tr>';
+
+            // Meta fields
+            const fields = [
+                ['Project', meta.project], ['Supplier', meta.supplier], ['Round', meta.round],
+                ['Status', meta.status], ['Due Date', meta.valid_until || 'Open'],
+                ['Currency', data.currency], ['Incoterms', data.incoterms],
+                ['Payment Terms', data.payment_terms], ['Shipping', data.shipping],
+                ['Quote Number', data.quote_number], ['Packaging', data.packaging],
+                ['Notes', data.notes || '']
+            ];
+            fields.forEach(function(pair) {
+                html += '<tr><td style="font-weight:bold;background:#e8e8e8;padding:4px 10px;">' + _escHtml(pair[0]) + '</td><td style="padding:4px 10px;" colspan="' + (totalCols - 1) + '">' + _escHtml(pair[1]) + '</td></tr>';
+            });
+
+            // Spacer + Items header
+            html += '<tr><td></td></tr>';
+            html += '<tr><td colspan="' + totalCols + '" style="font-size:14pt;font-weight:bold;padding:6px;">Requested Items (' + data.items.length + ')</td></tr>';
+
+            // Column headers with qty+price pairs
+            html += '<tr>';
+            const hdrs = ['#', 'Item No', 'Manufacturer', 'MPN', 'Description'];
+            for (var ti = 0; ti < ph.length; ti++) {
+                hdrs.push('QTY ' + (ti + 1));
+                hdrs.push(ph[ti]);
+            }
+            hdrs.push('MOQ', 'Lead Time', 'No Bid', 'No Bid Reason');
+            hdrs.forEach(function(h) {
+                html += '<td style="font-weight:bold;background:#1a1a2e;color:#ffffff;padding:6px 10px;white-space:nowrap;">' + _escHtml(h) + '</td>';
+            });
+            html += '</tr>';
+
+            // Data rows
+            data.items.forEach(function(it, i) {
+                const bg = i % 2 === 0 ? '#ffffff' : '#f0f4f8';
+                const s = 'style="background:' + bg + ';padding:4px 10px;border-bottom:1px solid #ddd;"';
+                html += '<tr>';
+                html += '<td ' + s + '>' + (i + 1) + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.item_drawing_no) + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.manufacturer) + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.mpn) + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.description) + '</td>';
+                for (var t = 0; t < ph.length; t++) {
+                    html += '<td ' + s + '>' + _escHtml(it['qty_' + (t + 1)] || '') + '</td>';
+                    var pk = t === 0 ? 'price' : 'price_' + (t + 1);
+                    html += '<td ' + s + '>' + _escHtml(it[pk] || '') + '</td>';
+                }
+                html += '<td ' + s + '>' + _escHtml(it.moq) + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.lead_time) + '</td>';
+                html += '<td ' + s + '>' + (it.no_bid ? 'Yes' : '') + '</td>';
+                html += '<td ' + s + '>' + _escHtml(it.no_bid_reason) + '</td>';
+                html += '</tr>';
+            });
+            html += '</table></body></html>';
+
+            _downloadBlob(new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' }), _filePrefix() + '.xls');
+        }
+
+        // --- EXPORT AS PDF ---
+        function exportAsPDF() {
+            _closeAllExportMenus();
+            const data = collectFormData();
+            const meta = _getExportMeta();
+            const ph = _getPriceHeaders(data.items);
+
+            // Build item rows (dynamic tiers)
+            const tdS = 'padding:7px 8px;border-bottom:1px solid #e2e8f0;font-size:11px;';
+            let itemsRows = '';
+            data.items.forEach(function(it, i) {
+                const bg = i % 2 === 0 ? '#fff' : '#f8fafc';
+                itemsRows += '<tr style="background:' + bg + ';">';
+                itemsRows += '<td style="' + tdS + 'color:#64748b;text-align:center;">' + (i + 1) + '</td>';
+                itemsRows += '<td style="' + tdS + 'font-weight:600;">' + _escHtml(it.item_drawing_no) + '</td>';
+                itemsRows += '<td style="' + tdS + '">' + _escHtml(it.manufacturer) + '</td>';
+                itemsRows += '<td style="' + tdS + '">' + _escHtml(it.mpn) + '</td>';
+                itemsRows += '<td style="' + tdS + 'max-width:180px;color:#475569;font-size:10px;">' + _escHtml(it.description) + '</td>';
+                for (var t = 0; t < ph.length; t++) {
+                    itemsRows += '<td style="' + tdS + 'text-align:center;">' + _escHtml(it['qty_' + (t + 1)] || '') + '</td>';
+                    var pk = t === 0 ? 'price' : 'price_' + (t + 1);
+                    itemsRows += '<td style="' + tdS + 'text-align:right;font-weight:500;">' + _escHtml(it[pk] || '') + '</td>';
+                }
+                itemsRows += '<td style="' + tdS + 'text-align:center;">' + _escHtml(it.moq) + '</td>';
+                itemsRows += '<td style="' + tdS + '">' + _escHtml(it.lead_time) + '</td>';
+                itemsRows += '<td style="' + tdS + 'text-align:center;color:' + (it.no_bid ? '#dc2626' : '#64748b') + ';">' + (it.no_bid ? 'Yes' : '') + '</td>';
+                if (it.no_bid) itemsRows += '<td style="' + tdS + 'font-size:10px;color:#64748b;">' + _escHtml(it.no_bid_reason) + '</td>';
+                else itemsRows += '<td style="' + tdS + '"></td>';
+                itemsRows += '</tr>';
+            });
+
+            // Build meta info bar cells
+            const metaFields = [
+                ['Project', meta.project], ['Due Date', meta.valid_until ? new Date(meta.valid_until).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : 'Open'],
+                ['Currency', data.currency], ['Incoterms', data.incoterms],
+                ['Payment Terms', data.payment_terms], ['Shipping', data.shipping],
+                ['Quote Ref', data.quote_number], ['Packaging', data.packaging]
+            ];
+            let metaCells = '';
+            metaFields.forEach(function(pair) {
+                if (pair[1]) metaCells += '<div style="min-width:120px;padding:8px 12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:3px;">' + pair[0] + '</div><div style="font-size:13px;font-weight:500;color:#0f172a;">' + _escHtml(pair[1]) + '</div></div>';
+            });
+
+            // Build price column headers with qty+price pairs (dynamic tiers)
+            let priceThHtml = '';
+            ph.forEach(function(h, idx) {
+                priceThHtml += '<th style="text-align:center;padding:10px 8px;">QTY ' + (idx + 1) + '</th>';
+                priceThHtml += '<th style="text-align:right;padding:10px 8px;">' + _escHtml(h) + '</th>';
+            });
+
+            const pdfHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Quote Export - ' + _escHtml(meta.supplier) + '</title>' +
+                '<style>' +
+                '@page { size: A4 landscape; margin: 12mm 15mm; }' +
+                'body { font-family: "Segoe UI", Inter, Arial, sans-serif; color: #0f172a; margin: 0; padding: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+                'table { width: 100%; border-collapse: collapse; }' +
+                'th { text-align: left; padding: 10px 8px; background: #1a1a2e; color: #fff; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }' +
+                '</style></head><body>' +
+
+                // Header bar
+                '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px 0;border-bottom:3px solid #1a1a2e;margin-bottom:16px;">' +
+                '<div>' +
+                    '<div style="font-size:26px;font-weight:800;letter-spacing:2px;color:#1a1a2e;">OPTICHAIN</div>' +
+                    '<div style="font-size:11px;color:#64748b;margin-top:2px;">Quote Export Report</div>' +
+                '</div>' +
+                '<div style="text-align:right;">' +
+                    '<div style="font-size:20px;font-weight:700;color:#1a1a2e;">' + _escHtml(meta.supplier) + '</div>' +
+                    '<div style="font-size:11px;color:#64748b;margin-top:2px;">Round ' + meta.round + ' &bull; <span style="text-transform:uppercase;font-weight:600;color:#2563eb;">' + meta.status + '</span></div>' +
+                '</div></div>' +
+
+                // Meta info bar
+                '<div style="display:flex;gap:0;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;">' +
+                metaCells + '</div>' +
+
+                // Notes
+                (data.notes ? '<div style="padding:10px 14px;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;margin-bottom:14px;font-size:11px;line-height:1.5;"><strong style="color:#92400e;">Notes:</strong> ' + _escHtml(data.notes) + '</div>' : '') +
+
+                // Items header
+                '<div style="margin-bottom:6px;font-size:13px;font-weight:600;color:#0f172a;">Requested Items <span style="font-weight:400;color:#64748b;">(' + data.items.length + ' items)</span></div>' +
+
+                // Items table
+                '<table><thead><tr>' +
+                '<th style="width:28px;text-align:center;padding:10px 6px;">#</th>' +
+                '<th style="padding:10px 8px;">Item No</th>' +
+                '<th style="padding:10px 8px;">Manufacturer</th>' +
+                '<th style="padding:10px 8px;">MPN</th>' +
+                '<th style="padding:10px 8px;">Description</th>' +
+                priceThHtml +
+                '<th style="text-align:center;padding:10px 8px;">MOQ</th>' +
+                '<th style="padding:10px 8px;">Lead Time</th>' +
+                '<th style="text-align:center;padding:10px 6px;">No Bid</th>' +
+                '<th style="padding:10px 8px;">Reason</th>' +
+                '</tr></thead><tbody>' + itemsRows + '</tbody></table>' +
+
+                // Footer
+                '<div style="margin-top:20px;padding-top:10px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;">' +
+                '<span>Generated by OPTICHAIN</span>' +
+                '<span>' + new Date().toLocaleString('en-GB', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</span>' +
+                '</div></body></html>';
+
+            const printWin = window.open('', '_blank', 'width=1200,height=800');
+            if (printWin) {
+                printWin.document.write(pdfHtml);
+                printWin.document.close();
+                setTimeout(function() { printWin.print(); }, 500);
+            } else {
+                alert('Pop-up blocked. Please allow pop-ups for this site and try again.');
+            }
+        }
+
+        // --- SAVE FOR LATER ---
+        async function saveDraft() {
+            const btn = document.getElementById('btn-save-draft');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const data = collectFormData();
+                const res = await fetch("{% url 'api_supplier_portal_save_draft' access.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    const toast = document.getElementById('toast');
+                    toast.textContent = 'Draft saved successfully!';
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.transform = 'translateY(100px)'; toast.style.opacity = '0'; }, 3000);
+                } else {
+                    let errMsg = 'Save failed';
+                    try { const err = await res.json(); errMsg = err.error || errMsg; } catch {}
+                    alert('Error: ' + errMsg);
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Save for Later';
+        }
+
+        // --- LEAVE PORTAL ---
+        function leavePortal() {
+            if (confirm('Are you sure you want to leave? Unsaved changes will be lost.')) {
+                window.close();
+                // Fallback if window.close() doesn't work (not opened as popup)
+                setTimeout(() => { document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif;color:#64748b;font-size:18px;">You may close this tab.</div>'; }, 200);
+            }
+        }
+
+        // --- REQUEST RE-OPENING ---
+        async function requestReopen() {
+            const reason = prompt('Please provide a reason for requesting re-opening:');
+            if (!reason || !reason.trim()) return;
+
+            const btn = document.getElementById('btn-request-reopen');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerText = 'Sending...';
+            try {
+                const res = await fetch("{% url 'api_supplier_access_request_reopen' access.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason: reason.trim() })
+                });
+                if (res.ok) {
+                    btn.innerText = 'Re-Opening Requested';
+                    btn.style.background = '#94a3b8';
+                    btn.style.cursor = 'default';
+                    const toast = document.getElementById('toast');
+                    toast.textContent = 'Re-opening request sent to buyer.';
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.transform = 'translateY(100px)'; toast.style.opacity = '0'; }, 3000);
+                } else {
+                    let errMsg = 'Request failed';
+                    try { const err = await res.json(); errMsg = err.error || errMsg; } catch {}
+                    alert(errMsg);
+                    btn.disabled = false;
+                    btn.innerText = 'Request Re-Opening';
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.innerText = 'Request Re-Opening';
+            }
+        }
+    </script>
+</body>
+
+</html>

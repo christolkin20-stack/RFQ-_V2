@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFQ System (Django)</title>
+  <link rel="stylesheet" href="{% static 'rfq/style.css' %}?v={{ build_version }}" />
+</head>
+<body class="rfq-standalone-body">
+  <div id="rfq-root"></div>
+
+  <script>
+    window.__RFQ_BUILD_VERSION__ = "{{ build_version }}";
+  </script>
+
+  <!-- External libs (Dashboard charts + Excel import/export) -->
+  <script src="{% static 'rfq/chart.umd.min.js' %}"></script>
+  <script src="{% static 'rfq/xlsx.full.min.js' %}"></script>
+
+  <!-- App data + app -->
+  <script src="{% static 'rfq/rfq_data.js' %}?v={{ build_version }}"></script>
+  <script src="{% static 'rfq/rfq.js' %}?v={{ build_version }}"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.RFQStandalone && typeof window.RFQStandalone.mount === 'function') {
+        window.RFQStandalone.mount('#rfq-root');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+﻿
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Notification</title></head>
+                <body style="font-family:Arial, sans-serif;">
+                    <h2>Notification for BBB</h2>
+                    <p><strong>Project:</strong> FourGrowers</p>
+                    <p><strong>Quote Number:</strong> N/A</p>
+                    <p><strong>Supplier:</strong> BBB</p>
+                    <p><strong>Date:</strong> 6. 2. 2026</p>
+                    <hr/>
+                    <h3>Message:</h3>
+                    <p style="white-space:pre-wrap;">Dear BBB,
+
+Thank you for your quotation for project "Project". Unfortunately, we have decided to proceed with other suppliers for these parts.
+
+We appreciate your time and effort in preparing the quotation (Quote Ref: N/A) and hope to work with you on future opportunities.
+
+Best regards</p>
+                    <hr/>
+                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse; width:100%;">
+                        <thead style="background:#f0f0f0;">
+                            <tr>
+                                <th>Quote #</th>
+                                <th>Drawing No</th>
+                                <th>Description</th>
+                                <th>Manufacturer</th>
+                                <th>MPN</th>
+                                <th>Your Quote</th>
+                                <th>Awarded To</th>
+                                <th>Price Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                                <tr>
+                                    <td></td>
+                                    <td>420-00218</td>
+                                    <td>FILTER SPONGE, 2.2IN OD X 1IN ID X 3.9IN LG</td>
+                                    <td>AQUANEAT</td>
+                                    <td>B0B5KSSCBY</td>
+                                    <td>undefined</td>
+                                    <td>AAA</td>
+                                    <td>€undefined</td>
+                                </tr>
+                            
+                                <tr>
+                                    <td></td>
+                                    <td>125-00013</td>
+                                    <td>BREAKAWAY CONNECTOR KIT, IN-LINE NON-FUSED</td>
+                                    <td>IDEAL INDUSTRIES, INC</td>
+                                    <td>20U</td>
+                                    <td>undefined</td>
+                                    <td>AAA</td>
+                                    <td>€undefined</td>
+                                </tr>
+                            
+                                <tr>
+                                    <td></td>
+                                    <td>420-00160</td>
+                                    <td>SHOCK CORD, 0.125IN DIA, MARINE GRADE</td>
+                                    <td>SGT KNOTS Supply Co.</td>
+                                    <td>SKSC1/8-100FT-KELLYGREEN</td>
+                                    <td>undefined</td>
+                                    <td>AAA</td>
+                                    <td>€undefined</td>
+                                </tr>
+                            
+                                <tr>
+                                    <td></td>
+                                    <td>FGC-001036</td>
+                                    <td>FILTER, SHOP VAC BRAND, 7.32in OD, 6.57in L</td>
+                                    <td>Shop Vac</td>
+                                    <td>9030433</td>
+                                    <td>undefined</td>
+                                    <td>AAA</td>
+                                    <td>€undefined</td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+             
