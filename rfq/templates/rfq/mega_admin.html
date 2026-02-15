@@ -27,6 +27,9 @@
     .badge{display:inline-block;padding:2px 6px;border-radius:99px;border:1px solid #334155;background:#0b1224;font-size:11px}
     .toast{position:fixed;right:14px;bottom:14px;background:#0f172a;border:1px solid #334155;padding:10px 12px;border-radius:10px;display:none;max-width:340px}
     .danger{color:#fca5a5}.ok{color:#86efac}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.68);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .modal-card{width:min(460px,92vw);background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
     @media (max-width:1000px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
@@ -117,6 +120,24 @@ async function j(url, o={}){const r=await fetch(url,{credentials:'same-origin',h
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 function toast(msg, ok=true){const el=document.getElementById('toast');el.className='toast '+(ok?'ok':'danger');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',2800)}
+
+function appConfirm(message, title='Confirm action'){
+  return new Promise(resolve => {
+    const b=document.createElement('div'); b.className='modal-backdrop';
+    b.innerHTML=`<div class='modal-card'>
+      <div style='font-size:15px;font-weight:700;margin-bottom:8px;'>${esc(title)}</div>
+      <div class='muted'>${esc(message)}</div>
+      <div class='modal-actions'>
+        <button id='m-no'>Cancel</button>
+        <button id='m-yes' class='primary'>Continue</button>
+      </div>
+    </div>`;
+    document.body.appendChild(b);
+    b.querySelector('#m-no').onclick=()=>{b.remove();resolve(false)};
+    b.querySelector('#m-yes').onclick=()=>{b.remove();resolve(true)};
+  });
+}
+
 function updateStats(){
   document.getElementById('sCompanies').textContent = state.companies.length;
   document.getElementById('sUsers').textContent = state.users.length;
@@ -166,7 +187,7 @@ async function loadCompanies(){
   el.querySelectorAll('[data-ce]').forEach(b=>b.onclick=()=>{const c=state.companies.find(x=>String(x.id)===String(b.dataset.ce)); if(c) setCompanyEdit(c)});
   el.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{
     const c=state.companies.find(x=>String(x.id)===String(b.dataset.ct)); if(!c) return;
-    if(!confirm(`${c.is_active?'Deactivate':'Activate'} company ${c.name}?`)) return;
+    if(!(await appConfirm(`${c.is_active?'Deactivate':'Activate'} company ${c.name}?`, 'Company status change'))) return;
     await j('/api/admin/companies',{method:'POST',body:JSON.stringify({id:c.id,is_active:!c.is_active})});
     toast('Company status updated');
     await loadCompanies();
@@ -204,7 +225,7 @@ async function loadUsers(){
     const mg=el.querySelector(`[data-m='${id}']`).checked;
     const active=el.querySelector(`[data-a='${id}']`).checked;
     const cid=el.querySelector(`[data-c='${id}']`).value||null;
-    if(role==='superadmin' && !confirm('Assigning superadmin is critical. Continue?')) return;
+    if(role==='superadmin' && !(await appConfirm('Assigning superadmin is critical. Continue?', 'Privilege escalation'))) return;
     await j('/api/admin/users',{method:'POST',body:JSON.stringify({user_id:Number(id),role,is_management:mg,is_active:active,company_id:cid})});
     toast('User updated');
     await loadUsers();
@@ -221,7 +242,7 @@ async function loadLocks(){
     <div><button data-f='${esc(l.resource_key)}' class='warn'>Force unlock</button></div>
   </div>`).join('')||"<div class='row'>No active locks</div>";
   el.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{
-    if(!confirm('Force unlock this record?')) return;
+    if(!(await appConfirm('Force unlock this record?', 'Force unlock'))) return;
     await j('/api/locks/force_unlock',{method:'POST',body:JSON.stringify({resource_key:b.dataset.f})});
     toast('Lock force-unlocked');
     await loadLocks();

@@ -34,7 +34,8 @@ def require_same_origin_for_unsafe(request):
         return JsonResponse({'error': 'Missing origin/referrer'}, status=403)
 
     try:
-        host = (urlparse(src).netloc or '').lower()
+        parsed = urlparse(src)
+        host = (parsed.hostname or '').lower()
     except Exception:
         return JsonResponse({'error': 'Invalid origin/referrer'}, status=403)
 
@@ -42,7 +43,7 @@ def require_same_origin_for_unsafe(request):
     trusted = set()
     for o in getattr(django_settings, 'CSRF_TRUSTED_ORIGINS', []) or []:
         try:
-            trusted.add((urlparse(o).netloc or '').lower())
+            trusted.add((urlparse(o).hostname or '').lower())
         except Exception:
             pass
 
