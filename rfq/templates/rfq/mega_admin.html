@@ -88,6 +88,7 @@
           <button class="primary" id="ucreate">Create user</button>
         </div>
         <div class="controls">
+          <select id="ucompany-filter"><option value="">All companies</option></select>
           <input id="usearch" placeholder="Filter users (name/email/role/company)" />
           <button id="urefresh">Refresh</button>
         </div>
@@ -222,12 +223,31 @@ async function loadUsers(){
   const companies=state.companies;
   const ucompany=document.getElementById('ucompany');
   if (ucompany) { ucompany.innerHTML = `<option value=''>company...</option>` + companies.map(c=>`<option value='${c.id}'>${esc(c.name)}</option>`).join(''); }
+  const ucompanyFilter=document.getElementById('ucompany-filter');
+  if (ucompanyFilter) {
+    const prev = ucompanyFilter.value || '';
+    ucompanyFilter.innerHTML = `<option value=''>All companies</option>` + companies.map(c=>`<option value='${c.id}'>${esc(c.name)}</option>`).join('');
+    ucompanyFilter.value = prev;
+  }
+
   const q=(document.getElementById('usearch').value||'').toLowerCase().trim();
-  const users=q?state.users.filter(u=>`${u.username} ${u.email||''} ${u.role||''} ${u.company_name||''}`.toLowerCase().includes(q)):state.users;
+  const fCompany=(document.getElementById('ucompany-filter')?.value||'').trim();
+  let users = state.users.slice();
+  if (fCompany) users = users.filter(u => String(u.company_id||'') === String(fCompany));
+  if (q) users = users.filter(u=>`${u.username} ${u.email||''} ${u.role||''} ${u.company_name||''}`.toLowerCase().includes(q));
 
   const cOpts=(id)=>`<option value=''>none</option>`+companies.map(c=>`<option value='${c.id}' ${String(id)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('');
   const el=document.getElementById('users');
-  el.innerHTML=users.map(u=>`<div class='row'>
+
+  const grouped = {};
+  users.forEach(u => {
+    const k = u.company_name || 'No company';
+    grouped[k] = grouped[k] || [];
+    grouped[k].push(u);
+  });
+  const groupNames = Object.keys(grouped).sort((a,b)=>a.localeCompare(b));
+
+  el.innerHTML=groupNames.map(g=>`<div style='padding:6px 8px;background:#0b1224;border-bottom:1px solid #334155;font-size:11px;font-weight:700;color:#cbd5e1;'>${esc(g)} (${grouped[g].length})</div>${grouped[g].map(u=>`<div class='row'>
       <div>
         <b>${esc(u.username)}</b> <span class='badge'>${esc(u.role)}</span> ${u.is_management?'<span class="badge">mgmt</span>':''} ${u.is_active?'':'<span class="badge">inactive</span>'}
         <div class='muted'>${esc(u.email||'')} • ${esc(u.company_name||'no company')}</div>
@@ -242,7 +262,7 @@ async function loadUsers(){
         <button data-rp='${u.user_id}'>Reset pass</button>
         <button data-del='${u.user_id}' class='warn'>Delete</button>
       </div>
-    </div>`).join('')||"<div class='row'>No users</div>";
+    </div>`).join('')}`).join('')||"<div class='row'>No users</div>";
 
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.s;
@@ -318,6 +338,7 @@ document.getElementById('arefresh').onclick=loadAudit;
 document.getElementById('urefresh').onclick=loadUsers;
 document.getElementById('ushowpass').onchange=(e)=>{const p=document.getElementById('upass'); if(p) p.type=e.target.checked?'text':'password';};
 document.getElementById('usearch').oninput=()=>loadUsers();
+document.getElementById('ucompany-filter').onchange=()=>loadUsers();
 document.getElementById('actorf').oninput=()=>loadAudit();
 document.getElementById('ucreate').onclick=async()=>{
   const username=document.getElementById('uname').value.trim();
