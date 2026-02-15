@@ -19,6 +19,13 @@ urlpatterns = [
     path('api/projects/<str:project_id>/attachments/<str:attachment_id>', api_projects.project_attachment_detail, name='api_project_attachment_detail'),
     path('api/export', api_projects.export_data, name='api_export'),
 
+    # Edit locks API
+    path('api/locks/acquire', api_projects.locks_acquire, name='api_locks_acquire'),
+    path('api/locks/heartbeat', api_projects.locks_heartbeat, name='api_locks_heartbeat'),
+    path('api/locks/release', api_projects.locks_release, name='api_locks_release'),
+    path('api/locks/status', api_projects.locks_status, name='api_locks_status'),
+    path('api/locks/force_unlock', api_projects.locks_force_unlock, name='api_locks_force_unlock'),
+
     # Supplier Interaction API
     path('api/supplier_access/generate', api_supplier.supplier_access_generate, name='api_supplier_access_generate'),
     path('api/supplier_access/<str:token>/submit', api_supplier.supplier_portal_submit, name='api_supplier_portal_submit'),

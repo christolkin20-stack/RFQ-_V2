@@ -1,7 +1,10 @@
 import uuid
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import JsonResponse, HttpResponseNotAllowed
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .api_common import (
@@ -12,7 +15,7 @@ from .api_common import (
     require_same_origin_for_unsafe,
     json_body,
 )
-from .models import Project, Attachment, ProjectAccess
+from .models import Project, Attachment, EditLock, ProjectAccess
 from . import views_api as _v
 
 
@@ -452,6 +455,217 @@ def project_access(request, project_id: str):
         return JsonResponse({'ok': True, 'created': created})
 
     return HttpResponseNotAllowed(['GET', 'POST'])
+
+
+@csrf_exempt
+def locks_acquire(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    payload = json_body(request)
+    if not isinstance(payload, dict):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    resource_key = str(payload.get('resource_key') or '').strip()
+    project_id = str(payload.get('project_id') or '').strip()
+    context = str(payload.get('context') or '').strip()[:64]
+    ttl_sec = int(payload.get('ttl_sec') or 180)
+    ttl_sec = max(30, min(ttl_sec, 600))
+
+    if not resource_key:
+        return JsonResponse({'error': 'resource_key required'}, status=400)
+
+    project = None
+    if project_id:
+        project = _projects_qs_for_actor(actor).filter(id=project_id).first()
+        if not project or not can_edit_project(actor, project):
+            return JsonResponse({'error': 'Access denied'}, status=403)
+
+    company = actor.get('company')
+    if not actor.get('is_superadmin') and not company:
+        return JsonResponse({'error': 'User has no company assigned'}, status=403)
+
+    now = timezone.now()
+    expires_at = now + timedelta(seconds=ttl_sec)
+    user = actor.get('user')
+    user_id = getattr(user, 'id', None)
+    display = getattr(user, 'username', '') or 'user'
+
+    with transaction.atomic():
+        lock = EditLock.objects.select_for_update().filter(resource_key=resource_key).first()
+        if lock and lock.expires_at > now and lock.locked_by_id != user_id:
+            return JsonResponse({
+                'ok': True,
+                'acquired': False,
+                'owner': {
+                    'user_id': lock.locked_by_id,
+                    'display': lock.locked_by_display,
+                },
+                'expires_at': lock.expires_at.isoformat(),
+                'resource_key': resource_key,
+            })
+
+        if not lock:
+            lock = EditLock(resource_key=resource_key)
+
+        lock.company = company if company else lock.company
+        lock.project = project
+        lock.locked_by_id = user_id
+        lock.locked_by_display = display
+        lock.context = context
+        lock.expires_at = expires_at
+        lock.save()
+
+    return JsonResponse({
+        'ok': True,
+        'acquired': True,
+        'resource_key': resource_key,
+        'expires_at': expires_at.isoformat(),
+    })
+
+
+@csrf_exempt
+def locks_heartbeat(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    payload = json_body(request)
+    if not isinstance(payload, dict):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    resource_key = str(payload.get('resource_key') or '').strip()
+    if not resource_key:
+        return JsonResponse({'error': 'resource_key required'}, status=400)
+
+    ttl_sec = int(payload.get('ttl_sec') or 180)
+    ttl_sec = max(30, min(ttl_sec, 600))
+    now = timezone.now()
+    expires_at = now + timedelta(seconds=ttl_sec)
+    user_id = getattr(actor.get('user'), 'id', None)
+
+    with transaction.atomic():
+        lock = EditLock.objects.select_for_update().filter(resource_key=resource_key).first()
+        if not lock:
+            return JsonResponse({'ok': True, 'renewed': False, 'reason': 'missing'})
+        if lock.expires_at <= now:
+            return JsonResponse({'ok': True, 'renewed': False, 'reason': 'expired'})
+        if lock.locked_by_id != user_id:
+            return JsonResponse({'ok': True, 'renewed': False, 'reason': 'owner_mismatch'})
+        lock.expires_at = expires_at
+        lock.save(update_fields=['expires_at', 'updated_at'])
+
+    return JsonResponse({'ok': True, 'renewed': True, 'expires_at': expires_at.isoformat()})
+
+
+@csrf_exempt
+def locks_release(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    payload = json_body(request)
+    if not isinstance(payload, dict):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    resource_key = str(payload.get('resource_key') or '').strip()
+    if not resource_key:
+        return JsonResponse({'error': 'resource_key required'}, status=400)
+
+    user_id = getattr(actor.get('user'), 'id', None)
+    q = EditLock.objects.filter(resource_key=resource_key)
+    if not actor.get('is_superadmin'):
+        q = q.filter(locked_by_id=user_id)
+
+    deleted, _ = q.delete()
+    return JsonResponse({'ok': True, 'released': bool(deleted)})
+
+
+@csrf_exempt
+def locks_status(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
+    resource_key = str(request.GET.get('resource_key') or '').strip()
+    if not resource_key:
+        return JsonResponse({'error': 'resource_key required'}, status=400)
+
+    now = timezone.now()
+    lock = EditLock.objects.filter(resource_key=resource_key).first()
+    if not lock or lock.expires_at <= now:
+        return JsonResponse({'ok': True, 'locked': False, 'resource_key': resource_key})
+
+    return JsonResponse({
+        'ok': True,
+        'locked': True,
+        'resource_key': resource_key,
+        'owner': {
+            'user_id': lock.locked_by_id,
+            'display': lock.locked_by_display,
+        },
+        'expires_at': lock.expires_at.isoformat(),
+        'context': lock.context or '',
+        'project_id': lock.project_id,
+    })
+
+
+@csrf_exempt
+def locks_force_unlock(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    if not (actor.get('is_superadmin') or require_role(actor, 'admin')):
+        return JsonResponse({'error': 'Admin permission required'}, status=403)
+
+    payload = json_body(request)
+    if not isinstance(payload, dict):
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    resource_key = str(payload.get('resource_key') or '').strip()
+    if not resource_key:
+        return JsonResponse({'error': 'resource_key required'}, status=400)
+
+    q = EditLock.objects.filter(resource_key=resource_key)
+    if not actor.get('is_superadmin'):
+        company = actor.get('company')
+        q = q.filter(company=company)
+
+    deleted, _ = q.delete()
+    return JsonResponse({'ok': True, 'forced': bool(deleted)})
 
 
 # bridge until export module extraction
