@@ -10164,7 +10164,13 @@ window.SystemApps.rfq = {
 
                 viewMain.classList.remove('hidden');
                 if (navMain) navMain.classList.add('active');
-                try { renderMainOverview(); } catch (e) { console.error(e); const me = getEl('main-error'); if (me) { me.textContent = 'MAIN render error: ' + (e && e.message ? e.message : String(e)); me.classList.remove('hidden'); } }
+                try {
+                    const mf = getEl('main-filter');
+                    const ms = getEl('main-status-filter');
+                    if (mf) mf.value = '';
+                    if (ms) ms.value = '';
+                    renderMainOverview();
+                } catch (e) { console.error(e); const me = getEl('main-error'); if (me) { me.textContent = 'MAIN render error: ' + (e && e.message ? e.message : String(e)); me.classList.remove('hidden'); } }
             } else if (view === 'data' && viewDataManager) {
                 viewDataManager.classList.remove('hidden');
                 if (navData) navData.classList.add('active');
@@ -10546,7 +10552,13 @@ window.SystemApps.rfq = {
                 btnMainNewProject.onclick = () => { try { openNewProjectModal(); } catch (e) { console.error(e); } };
             }
 
-            projects = getAllProjectsSafe();
+            const freshProjects = getAllProjectsSafe();
+            // Resilience: if provider temporarily returns empty, keep in-memory list
+            if (Array.isArray(freshProjects) && freshProjects.length) {
+                projects = freshProjects;
+            } else if (!Array.isArray(projects)) {
+                projects = [];
+            }
 
             const list = Array.isArray(projects) ? projects : [];
             const tb = getEl('main-projects-tbody');
