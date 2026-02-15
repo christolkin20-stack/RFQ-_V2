@@ -39,6 +39,30 @@ def _safe_decimal(v):
         return None
 
 
+def _normalize_item_id(v):
+    s = str(v or '').strip()
+    if not s:
+        return ''
+    if s.lower() in {'none', 'null', 'undefined', 'nan'}:
+        return ''
+    return s
+
+
+def _item_match_key(item):
+    if not isinstance(item, dict):
+        return ''
+    sid = _normalize_item_id(item.get('id'))
+    if sid:
+        return f'id:{sid}'
+    dn = _normalize_name(item.get('item_drawing_no') or item.get('drawing_no') or '').lower()
+    if dn:
+        return f'dn:{dn}'
+    mpn = _normalize_name(item.get('mpn') or '').lower()
+    if mpn:
+        return f'mpn:{mpn}'
+    return ''
+
+
 def _extract_items_for_supplier(project_data, supplier_name):
     items = (project_data or {}).get('items') or []
     sname_norm = _normalize_name(supplier_name).lower()
@@ -289,15 +313,18 @@ def supplier_access_approve(request, token):
     for si in sub_items:
         if not isinstance(si, dict):
             continue
-        if si.get('id'):
-            sub_map[str(si['id'])] = si
+        sid = _normalize_item_id(si.get('id'))
+        if sid:
+            sub_map[sid] = si
         else:
             sub_no_id.append(si)
 
+    all_candidates = list(sub_map.values()) + sub_no_id
+
     updates_count = 0
     unmatched_count = 0
-    all_candidates = list(sub_map.values()) + sub_no_id
     sup_name_norm = _normalize_name(access.supplier_name).lower()
+    updated_item_keys = set()
 
     with transaction.atomic():
         proj = Project.objects.select_for_update().get(id=access.project_id)
@@ -305,16 +332,16 @@ def supplier_access_approve(request, token):
         items = pdata.get('items') or []
 
         for it in items:
-            it_id = str(it.get('id') or '')
-            sub_entry = sub_map.get(it_id)
+            it_id = _normalize_item_id(it.get('id'))
+            sub_entry = sub_map.get(it_id) if it_id else None
 
             if not sub_entry:
-                p_dn = str(it.get('item_drawing_no') or it.get('drawing_no') or '').strip().lower()
-                p_mpn = str(it.get('mpn') or '').strip().lower()
+                p_dn = _normalize_name(it.get('item_drawing_no') or it.get('drawing_no') or '').lower()
+                p_mpn = _normalize_name(it.get('mpn') or '').lower()
 
                 for cand in all_candidates:
-                    c_dn = str(cand.get('item_drawing_no') or cand.get('drawing_no') or '').strip().lower()
-                    c_mpn = str(cand.get('mpn') or '').strip().lower()
+                    c_dn = _normalize_name(cand.get('item_drawing_no') or cand.get('drawing_no') or '').lower()
+                    c_mpn = _normalize_name(cand.get('mpn') or '').lower()
 
                     if p_dn and c_dn and c_dn == p_dn:
                         sub_entry = cand
@@ -328,7 +355,7 @@ def supplier_access_approve(request, token):
                 continue
 
             try:
-                raw_price = str(sub_entry.get('price') or '').replace(',', '.')
+                raw_price = str(sub_entry.get('price') or sub_entry.get('price_1') or '').replace(',', '.')
                 if not raw_price:
                     continue
                 new_price = float(Decimal(raw_price))
@@ -363,7 +390,6 @@ def supplier_access_approve(request, token):
                 'interaction_id': access.id,
                 'round': access.round,
                 'note': new_comment,
-                'isMain': True,
             }
             for tier_i in range(2, 11):
                 tk = f'price_{tier_i}'
@@ -400,6 +426,8 @@ def supplier_access_approve(request, token):
             if not found:
                 sup_fields['name'] = access.supplier_name
                 sup_fields['supplier_name'] = access.supplier_name
+                # Do not auto-decide main supplier during Supplier Interaction approval.
+                sup_fields['isMain'] = False
                 sups.append(sup_fields)
 
             it['suppliers'] = sups
@@ -409,23 +437,16 @@ def supplier_access_approve(request, token):
             it['last_approved_at'] = now.isoformat()
             it['quote_round'] = access.round
 
-            it['supplier'] = access.supplier_name
-            it['price_1'] = new_price
-            it['currency'] = quote_currency
-            it['moq'] = new_moq
-            it['lead_time'] = new_lead
+            # IMPORTANT: do not auto-overwrite top-level winner fields on item
+            # (supplier/price_1/main tier values). Winner selection belongs to
+            # Price Comparison step, not Supplier Interaction approval.
             if str(it.get('status') or '') not in ('Done', 'Closed'):
                 it['status'] = 'Quoted'
-            for tier_i in range(2, 11):
-                tk = f'price_{tier_i}'
-                raw_tier = str(sub_entry.get(tk) or '').replace(',', '.').strip()
-                if raw_tier:
-                    try:
-                        it[tk] = float(Decimal(raw_tier))
-                    except (ValueError, InvalidOperation):
-                        pass
 
             updates_count += 1
+            k = _item_match_key(it)
+            if k:
+                updated_item_keys.add(k)
 
         proj.data = pdata
         proj.save()
@@ -504,22 +525,40 @@ def supplier_access_approve(request, token):
 
             req_items = access.requested_items or []
             req_by_id = {}
+            req_by_dn = {}
+            req_by_mpn = {}
             for ri in req_items:
-                if isinstance(ri, dict) and ri.get('id'):
-                    req_by_id[str(ri['id'])] = ri
+                if not isinstance(ri, dict):
+                    continue
+                rid = _normalize_item_id(ri.get('id'))
+                if rid:
+                    req_by_id[rid] = ri
+                rdn = _normalize_name(ri.get('item_drawing_no') or ri.get('drawing_no') or '').lower()
+                if rdn:
+                    req_by_dn[rdn] = ri
+                rmpn = _normalize_name(ri.get('mpn') or '').lower()
+                if rmpn:
+                    req_by_mpn[rmpn] = ri
 
             line_num = 0
             for si in sub_items:
                 if not isinstance(si, dict) or si.get('no_bid'):
                     continue
 
-                raw_price = str(si.get('price') or '').replace(',', '.').strip()
+                raw_price = str(si.get('price') or si.get('price_1') or '').replace(',', '.').strip()
                 if not raw_price:
                     continue
 
                 line_num += 1
-                sid = str(si.get('id') or '').strip()
-                ri = req_by_id.get(sid, {})
+                sid = _normalize_item_id(si.get('id'))
+                sdn = _normalize_name(si.get('item_drawing_no') or si.get('drawing_no') or '').lower()
+                smpn = _normalize_name(si.get('mpn') or '').lower()
+                ri = req_by_id.get(sid)
+                if not ri and sdn:
+                    ri = req_by_dn.get(sdn)
+                if not ri and smpn:
+                    ri = req_by_mpn.get(smpn)
+                ri = ri or {}
 
                 ql = QuoteLine(
                     quote=quote_obj,
@@ -553,6 +592,10 @@ def supplier_access_approve(request, token):
                 ql.save()
 
             for it in items:
+                if updated_item_keys:
+                    k = _item_match_key(it)
+                    if not k or k not in updated_item_keys:
+                        continue
                 sups = it.get('suppliers') or []
                 for s in sups:
                     sname = s.get('supplier_name') or s.get('name') or ''
@@ -850,8 +893,12 @@ def supplier_access_reopen_buyer(request, token):
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
 
-    if access.status not in ('rejected', 'lost', 'expired'):
-        return JsonResponse({'error': 'Only closed portals can be reopened.'}, status=400)
+    # Buyer can reopen either:
+    # 1) closed portals (rejected/lost/expired), or
+    # 2) any non-editable portal when supplier explicitly requested reopen.
+    reopen_requested = bool((access.submission_data or {}).get('reopen_requested'))
+    if access.status not in ('rejected', 'lost', 'expired') and not reopen_requested:
+        return JsonResponse({'error': 'Only closed portals or supplier-requested portals can be reopened.'}, status=400)
 
     with transaction.atomic():
         access.round += 1

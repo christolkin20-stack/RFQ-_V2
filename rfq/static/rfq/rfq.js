@@ -34,7 +34,6 @@ window.SystemApps.rfq = {
                     <button id="nav-database" class="nav-dropdown-item" type="button">Database</button>
                     <button id="nav-quotes" class="nav-dropdown-item" type="button">💰 Quotes</button>
                     <button id="nav-doc-manager" class="nav-dropdown-item" type="button">📂 Document Manager</button>
-                    <button id="nav-ai-chat" class="nav-dropdown-item" type="button">🤖 AI Assistant</button>
                 </div>
             </div>
 
@@ -376,7 +375,6 @@ window.SystemApps.rfq = {
         </div>
     </div>
 </div>
-<div id="view-ai-chat" class="view-section hidden"></div>
 
 <div id="view-project-detail" class="view-section hidden" style="overflow:hidden;">
   <div style="display:flex; flex-direction:column; height:100%; min-height:0; padding:20px;">
@@ -1052,9 +1050,9 @@ window.SystemApps.rfq = {
                             <div id="quotes-breadcrumb" class="quotes-breadcrumb hidden">
                                 <button id="quotes-bc-home" class="btn-text" type="button">⬅ All Suppliers</button>
                                 <span class="quotes-bc-sep">›</span>
-                                <span id="quotes-bc-supplier" class="quotes-bc-active"></span>
+                                <button id="quotes-bc-supplier" class="btn-text" type="button"></button>
                                 <span id="quotes-bc-sep2" class="quotes-bc-sep hidden">›</span>
-                                <span id="quotes-bc-quote" class="quotes-bc-active hidden"></span>
+                                <button id="quotes-bc-quote" class="btn-text hidden" type="button"></button>
                             </div>
 
                             <!-- CONTENT AREA (dynamically swapped between 3 levels) -->
@@ -41493,59 +41491,6 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// ===================================
-// AI Chat Bot Integration
-// ===================================
-document.addEventListener('click', function (e) {
-    if (e.target && (e.target.id === 'nav-ai-chat' || e.target.closest('#nav-ai-chat'))) {
-        // Reset project when going to GLOBAL view
-        currentProject = null;
-        window.currentProject = null;
-        localStorage.removeItem('rfq_active_project_id');
-        if (typeof setProjectNameUI === 'function') setProjectNameUI(null);
-        const ptg = document.querySelector('.project-tabs-group');
-        if (ptg) ptg.classList.remove('has-project');
-
-        // Switch View
-        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-        const view = document.getElementById('view-ai-chat');
-        if (view) view.classList.remove('hidden');
-
-        // Update Sidebar Active State
-        document.querySelectorAll('.nav-dropdown-item').forEach(el => el.classList.remove('active'));
-        const btn = document.getElementById('nav-ai-chat');
-        if (btn) btn.classList.add('active');
-
-        // Dynamic Script Loading
-        if (!window.RFQChat) {
-            if (window.showToast) window.showToast('Loading AI module...', 'info');
-            const script = document.createElement('script');
-            // Assuming the standard static path structure
-            script.src = '/static/rfq/rfq_chat.js?v=' + new Date().getTime();
-            script.onload = () => {
-                if (window.RFQChat) window.RFQChat.init();
-                if (window.showToast) window.showToast('AI Ready', 'success');
-            };
-            script.onerror = () => {
-                if (window.showToast) window.showToast('Failed to load AI module', 'error');
-                if (view) view.innerHTML = '<div style="padding:20px; color:red;">Error loading AI Chat module. Check console for path errors.</div>';
-            };
-            document.body.appendChild(script);
-        } else {
-            window.RFQChat.renderInterface();
-        }
-    }
-
-    // Auto-hide when leaving
-    const navItem = e.target.closest('.nav-item, .nav-dropdown-item, .tab, .nav-dropdown-btn');
-    if (navItem && navItem.id !== 'nav-ai-chat') {
-        const view = document.getElementById('view-ai-chat');
-        if (view) view.classList.add('hidden');
-        const btn = document.getElementById('nav-ai-chat');
-        if (btn) btn.classList.remove('active');
-    }
-});
-
 // =========================================================
 // SUPPLIER INTERACTION MODULE
 // =========================================================
@@ -42812,7 +42757,10 @@ window._showGenerateConfigModal = function(supplierNames, isBulk) {
                         instruction_message: instructionMessage, valid_until: validUntil
                     })
                 });
-                if (!res.ok) throw new Error('API Error');
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(`API Error ${res.status}: ${errText || 'bulk_generate failed'}`);
+                }
                 const json = await res.json();
                 window.closeRfqModal();
                 window.showAlert(`${json.count} portal link(s) generated successfully.`);
@@ -42828,13 +42776,24 @@ window._showGenerateConfigModal = function(supplierNames, isBulk) {
                         instruction_message: instructionMessage, valid_until: validUntil
                     })
                 });
-                if (!res.ok) throw new Error('API Error');
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(`API Error ${res.status}: ${errText || 'generate failed'}`);
+                }
                 const json = await res.json();
                 if (json.access && json.access.id) {
                     const link = `${location.origin}/portal/${json.access.id}/`;
                     window.closeRfqModal();
-                    window.showAlert(`Portal link generated for ${sName}. Link copied to clipboard.`);
-                    navigator.clipboard.writeText(link).catch(() => {});
+
+                    const canClipboard = !!(navigator && navigator.clipboard && navigator.clipboard.writeText);
+                    if (canClipboard) {
+                        navigator.clipboard.writeText(link).catch(() => {});
+                        window.showAlert(`Portal link generated for ${sName}. Link copied to clipboard.`);
+                    } else {
+                        // HTTP / non-secure context fallback
+                        window.showAlert(`Portal link generated for ${sName}: ${link}`);
+                    }
+
                     window.renderSupplierInteraction();
                 }
             }
@@ -42842,7 +42801,8 @@ window._showGenerateConfigModal = function(supplierNames, isBulk) {
             console.error(e);
             btn.disabled = false;
             btn.innerHTML = `Generate Link${isBulk ? 's' : ''}`;
-            window.showAlert('Error generating link. Please try again.');
+            const msg = (e && e.message) ? e.message : 'Error generating link. Please try again.';
+            window.showAlert(`Error generating link: ${msg}`);
         }
     };
 };
@@ -42900,12 +42860,16 @@ window.reopenSupplierAccess = async function(tokenId) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
             });
-            if (!res.ok) throw new Error('API Error');
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API Error ${res.status}: ${errText || 'reopen failed'}`);
+            }
             window.showAlert('Portal reopened.');
             window.renderSupplierInteraction();
         } catch (e) {
             console.error(e);
-            window.showAlert('Error reopening portal.');
+            const msg = (e && e.message) ? e.message : 'Error reopening portal.';
+            window.showAlert(`Error reopening portal: ${msg}`);
         }
     });
 };
@@ -42969,6 +42933,7 @@ function _qGetProjects() {
 let _quotesCache = [];
 let _quotesLevel = 1;
 let _quotesSupplier = null;
+let _quotesCurrentId = null;
 
 /* --- Helper functions --- */
 function _updateQuotesStats(quotes) {
@@ -43002,9 +42967,17 @@ function _setBreadcrumb(supplier, quoteNum) {
     const bcSup = document.getElementById('quotes-bc-supplier');
     const bcSep2 = document.getElementById('quotes-bc-sep2');
     const bcQ = document.getElementById('quotes-bc-quote');
-    if (bcSup) bcSup.textContent = supplier || '';
+    if (bcSup) {
+        bcSup.textContent = supplier || '';
+        bcSup.style.cursor = supplier ? 'pointer' : 'default';
+    }
     if (bcSep2) bcSep2.classList.toggle('hidden', !quoteNum);
-    if (bcQ) { bcQ.textContent = quoteNum || ''; bcQ.classList.toggle('hidden', !quoteNum); }
+    if (bcQ) {
+        bcQ.textContent = quoteNum || '';
+        bcQ.classList.toggle('hidden', !quoteNum);
+        bcQ.style.cursor = quoteNum ? 'pointer' : 'default';
+        if (_quotesCurrentId) bcQ.setAttribute('data-quote-id', String(_quotesCurrentId));
+    }
 }
 
 function _avatarColor(name) {
@@ -43027,6 +43000,7 @@ function _renderQuotesLevel1() {
     if (!content) return;
     _quotesLevel = 1;
     _quotesSupplier = null;
+    _quotesCurrentId = null;
     _showBreadcrumb(false);
 
     if (_quotesCache.length === 0) {
@@ -43103,6 +43077,7 @@ function _renderQuotesLevel2(supplierName) {
     const content = document.getElementById('quotes-content');
     if (!content) return;
     _quotesLevel = 2;
+    _quotesCurrentId = null;
     _showBreadcrumb(true);
     _setBreadcrumb(supplierName, null);
 
@@ -43177,6 +43152,7 @@ function _renderQuotesLevel3(quote) {
     const content = document.getElementById('quotes-content');
     if (!content) return;
     _quotesLevel = 3;
+    _quotesCurrentId = quote && quote.id ? String(quote.id) : null;
     _showBreadcrumb(true);
     _setBreadcrumb(quote.supplier_name || '\u2014', quote.quote_number || quote.id);
 
@@ -43817,4 +43793,35 @@ const btnQuotesBcSupplier = document.getElementById('quotes-bc-supplier');
 if (btnQuotesBcSupplier) btnQuotesBcSupplier.onclick = () => {
     if (_quotesSupplier) _renderQuotesLevel2(_quotesSupplier);
 };
+
+const btnQuotesBcQuote = document.getElementById('quotes-bc-quote');
+if (btnQuotesBcQuote) btnQuotesBcQuote.onclick = () => {
+    if (_quotesCurrentId) window._quotesOpenDetail(_quotesCurrentId);
+};
+
+// Fallback delegated handlers (covers dynamic re-renders / stale bindings)
+document.addEventListener('click', (e) => {
+    const home = e.target && e.target.closest && e.target.closest('#quotes-bc-home');
+    if (home) {
+        e.preventDefault();
+        if (_quotesLevel === 3 && _quotesSupplier) _renderQuotesLevel2(_quotesSupplier);
+        else _renderQuotesLevel1();
+        return;
+    }
+
+    const sup = e.target && e.target.closest && e.target.closest('#quotes-bc-supplier');
+    if (sup) {
+        e.preventDefault();
+        const name = _quotesSupplier || (sup.textContent || '').trim();
+        if (name) _renderQuotesLevel2(name);
+        return;
+    }
+
+    const qbtn = e.target && e.target.closest && e.target.closest('#quotes-bc-quote');
+    if (qbtn) {
+        e.preventDefault();
+        const qid = _quotesCurrentId || qbtn.getAttribute('data-quote-id');
+        if (qid) window._quotesOpenDetail(qid);
+    }
+});
 

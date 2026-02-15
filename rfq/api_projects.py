@@ -12,6 +12,114 @@ from .models import Project, Attachment
 from . import views_api as _v
 
 
+def _norm(v):
+    return ' '.join(str(v or '').split()).strip().lower()
+
+
+def _num(v):
+    try:
+        s = str(v or '').replace(',', '.').strip()
+        return float(s) if s else 0.0
+    except Exception:
+        return 0.0
+
+
+def _item_key(it):
+    if not isinstance(it, dict):
+        return ''
+    iid = _norm(it.get('id'))
+    if iid and iid not in {'none', 'null', 'undefined', 'nan'}:
+        return f'id:{iid}'
+    dn = _norm(it.get('item_drawing_no') or it.get('drawing_no'))
+    if dn:
+        return f'dn:{dn}'
+    mpn = _norm(it.get('mpn'))
+    if mpn:
+        return f'mpn:{mpn}'
+    return ''
+
+
+def _supplier_name(s):
+    return _norm((s or {}).get('supplier_name') or (s or {}).get('name') or (s or {}).get('supplier'))
+
+
+def _is_meaningful_quote(s):
+    if not isinstance(s, dict):
+        return False
+    if _num(s.get('price_1') or s.get('price')) > 0:
+        return True
+    if str(s.get('status') or '').strip().lower() == 'quoted':
+        return True
+    if str(s.get('quote_status') or '').strip().lower() == 'quoted':
+        return True
+    return False
+
+
+def _merge_preserve_supplier_quotes(existing_data, incoming_data):
+    if not isinstance(existing_data, dict) or not isinstance(incoming_data, dict):
+        return incoming_data
+
+    ex_items = existing_data.get('items') or []
+    in_items = incoming_data.get('items') or []
+    if not isinstance(ex_items, list) or not isinstance(in_items, list):
+        return incoming_data
+
+    ex_map = {}
+    for it in ex_items:
+        k = _item_key(it)
+        if k:
+            ex_map[k] = it
+
+    for it in in_items:
+        if not isinstance(it, dict):
+            continue
+        k = _item_key(it)
+        if not k or k not in ex_map:
+            continue
+
+        ex_it = ex_map[k]
+        ex_sups = ex_it.get('suppliers') or []
+        in_sups = it.get('suppliers') or []
+        if not isinstance(ex_sups, list):
+            ex_sups = []
+        if not isinstance(in_sups, list):
+            in_sups = []
+
+        in_by_name = {_supplier_name(s): s for s in in_sups if _supplier_name(s)}
+        for ex_s in ex_sups:
+            nm = _supplier_name(ex_s)
+            if not nm or not _is_meaningful_quote(ex_s):
+                continue
+            cur = in_by_name.get(nm)
+            if not cur:
+                in_sups.append(dict(ex_s))
+                in_by_name[nm] = in_sups[-1]
+                continue
+            if not _is_meaningful_quote(cur):
+                merged = dict(ex_s)
+                merged.update(cur)
+                # keep quote-bearing fields from existing when incoming is empty/stale
+                for fld in ['price', 'price_1', 'price_2', 'price_3', 'price_4', 'price_5', 'status', 'quote_status', 'quote_id', 'quote_number', 'prices']:
+                    if _num(cur.get(fld)) <= 0 and fld.startswith('price'):
+                        merged[fld] = ex_s.get(fld)
+                    elif fld in ['status', 'quote_status']:
+                        cur_v = str(cur.get(fld) or '').strip().lower()
+                        ex_v = str(ex_s.get(fld) or '').strip().lower()
+                        if ex_v == 'quoted' and cur_v != 'quoted':
+                            merged[fld] = ex_s.get(fld)
+                    elif fld in ['quote_id', 'quote_number', 'prices']:
+                        if not cur.get(fld):
+                            merged[fld] = ex_s.get(fld)
+                idx = in_sups.index(cur)
+                in_sups[idx] = merged
+                in_by_name[nm] = merged
+
+        it['suppliers'] = in_sups
+
+    incoming_data['items'] = in_items
+    return incoming_data
+
+
 def health(request):
     return JsonResponse({'ok': True})
 
@@ -124,7 +232,7 @@ def projects_bulk(request):
             name = str(proj.get('name') or 'Untitled')[:255]
             obj, _created = Project.objects.select_for_update().get_or_create(id=pid, defaults={'name': name, 'data': proj})
             obj.name = name
-            obj.data = proj
+            obj.data = _merge_preserve_supplier_quotes(obj.data or {}, proj)
             obj.save()
             upserted += 1
 
