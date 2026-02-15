@@ -808,6 +808,9 @@ def admin_users(request):
             if actor.get('is_superadmin') and payload.get('company_id') not in (None, '', 'null'):
                 target_company = Company.objects.filter(id=payload.get('company_id')).first() or target_company
 
+            if role != 'superadmin' and target_company is None:
+                return JsonResponse({'error': 'company_id required for non-superadmin users'}, status=400)
+
             profile = UserCompanyProfile.objects.create(
                 user=u,
                 company=None if role == 'superadmin' else target_company,
@@ -829,6 +832,28 @@ def admin_users(request):
 
         if not actor.get('is_superadmin') and profile.company_id != getattr(company, 'id', None):
             return JsonResponse({'error': 'Access denied'}, status=403)
+
+        # password reset action
+        if payload.get('reset_password'):
+            new_password = str(payload.get('new_password') or '').strip()
+            if not new_password:
+                return JsonResponse({'error': 'new_password required'}, status=400)
+            u = profile.user
+            u.set_password(new_password)
+            u.save(update_fields=['password'])
+            audit_log(request, actor, action='admin.user.password_reset', entity_type='user', entity_id=str(uid))
+            return JsonResponse({'ok': True})
+
+        # delete/deactivate action
+        if payload.get('delete_user'):
+            profile.is_active = False
+            profile.save(update_fields=['is_active', 'updated_at'])
+            u = profile.user
+            if hasattr(u, 'is_active'):
+                u.is_active = False
+                u.save(update_fields=['is_active'])
+            audit_log(request, actor, action='admin.user.delete', entity_type='user', entity_id=str(uid), metadata={'soft_delete': True})
+            return JsonResponse({'ok': True})
 
         role = str(payload.get('role') or profile.role).strip().lower()
         allowed_roles = {'admin', 'editor', 'viewer', 'superadmin'}
