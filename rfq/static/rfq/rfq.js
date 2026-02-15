@@ -18235,6 +18235,17 @@ Best regards`)}</textarea>
                     localStorage.setItem('rfq_last_session_key', sessionKey);
                 } catch (e) { }
 
+                try {
+                    if (window.RFQData && typeof window.RFQData.bootstrapFromServer === 'function') {
+                        await window.RFQData.bootstrapFromServer();
+                        projects = (window.RFQData.getProjects && window.RFQData.getProjects()) || projects;
+                        try { renderSidebar(); } catch (_) { }
+                        if (currentView === 'main') {
+                            try { renderMainOverview(); } catch (_) { }
+                        }
+                    }
+                } catch (e) { }
+
                 const topUser = document.getElementById('topbar-user');
                 if (topUser && data) {
                     const role = data.role ? ` (${data.role})` : '';

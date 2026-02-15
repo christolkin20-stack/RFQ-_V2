@@ -155,24 +155,17 @@ const nowIso = () => new Date().toISOString();
   };
 
   const bootstrapFromServer = () => {
-    // 1) pull server projects
-    _fetchJson(API.PROJECTS)
+    // Pull server projects and treat server as source-of-truth
+    // (critical for multi-user/multi-company isolation).
+    return _fetchJson(API.PROJECTS)
       .then(data => {
         const serverProjects = data && Array.isArray(data.projects) ? data.projects : [];
-        const localProjects = getProjects();
-
-        if (serverProjects.length === 0 && localProjects.length > 0) {
-          // Server empty -> push local up.
-          queueSync(100);
-          return;
-        }
-
-        // Merge server -> local (choose newer by updated_at)
-        const merged = mergeProjectsById(localProjects, serverProjects);
-        saveProjects(merged);
+        saveProjects(serverProjects);
+        return serverProjects;
       })
       .catch(() => {
         // offline / server not reachable -> keep local only
+        return getProjects();
       });
   };
 
