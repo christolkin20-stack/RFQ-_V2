@@ -18228,6 +18228,11 @@ Best regards`)}</textarea>
                             });
                             const jr = await r.json().catch(() => ({}));
                             if (!r.ok) throw new Error(jr.error || 'Switch failed');
+                            try {
+                                localStorage.removeItem('rfq_projects_v1');
+                                localStorage.removeItem('rfq_active_project_id');
+                                localStorage.removeItem('rfq_current_view_state');
+                            } catch (e) { }
                             location.reload();
                         } catch (e) {
                             console.warn('Company switch failed', e);

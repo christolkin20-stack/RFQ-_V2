@@ -222,7 +222,11 @@ async function loadUsers(){
   state.users = d.users||[];
   const companies=state.companies;
   const ucompany=document.getElementById('ucompany');
-  if (ucompany) { ucompany.innerHTML = `<option value=''>company...</option>` + companies.map(c=>`<option value='${c.id}'>${esc(c.name)}</option>`).join(''); }
+  if (ucompany) {
+    const prevU = ucompany.value || '';
+    ucompany.innerHTML = `<option value=''>company...</option>` + companies.map(c=>`<option value='${c.id}'>${esc(c.name)}</option>`).join('');
+    ucompany.value = prevU || (companies[0] ? String(companies[0].id) : '');
+  }
   const ucompanyFilter=document.getElementById('ucompany-filter');
   if (ucompanyFilter) {
     const prev = ucompanyFilter.value || '';
@@ -337,14 +341,18 @@ document.getElementById('lrefresh').onclick=loadLocks;
 document.getElementById('arefresh').onclick=loadAudit;
 document.getElementById('urefresh').onclick=loadUsers;
 document.getElementById('ushowpass').onchange=(e)=>{const p=document.getElementById('upass'); if(p) p.type=e.target.checked?'text':'password';};
+document.getElementById('urole').onchange=(e)=>{const c=document.getElementById('ucompany'); if(!c) return; c.disabled=(e.target.value==='superadmin');};
 document.getElementById('usearch').oninput=()=>loadUsers();
 document.getElementById('ucompany-filter').onchange=()=>loadUsers();
 document.getElementById('actorf').oninput=()=>loadAudit();
 document.getElementById('ucreate').onclick=async()=>{
   const username=document.getElementById('uname').value.trim();
   const password=document.getElementById('upass').value.trim();
+  const role=document.getElementById('urole').value;
+  const companyId=document.getElementById('ucompany').value||null;
   if(!username||!password){toast('username + password required', false);return;}
-  await j('/api/admin/users',{method:'POST',body:JSON.stringify({create_user:true,username,email:document.getElementById('uemail').value.trim(),password,role:document.getElementById('urole').value,company_id:document.getElementById('ucompany').value||null})});
+  if(role!=='superadmin' && !companyId){toast('Select company for this user', false);return;}
+  await j('/api/admin/users',{method:'POST',body:JSON.stringify({create_user:true,username,email:document.getElementById('uemail').value.trim(),password,role,company_id:companyId})});
   ['uname','uemail','upass'].forEach(id=>document.getElementById(id).value='');
   toast('User created');
   await loadUsers();
