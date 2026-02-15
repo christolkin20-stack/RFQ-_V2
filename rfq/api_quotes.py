@@ -7,6 +7,7 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .api_common import (
+    audit_log as _audit_log,
     get_buyer_username as _get_buyer_username,
     json_body as _json_body,
     require_auth_and_profile as _require_auth_and_profile,
@@ -377,6 +378,7 @@ def quotes_create(request):
                 setattr(line, f'price_{i}', line_data.get(f'price_{i}'))
             line.save()
 
+    _audit_log(request, actor, action='quote.create', entity_type='quote', entity_id=quote.id, project=quote.project, metadata={'quote_number': quote.quote_number})
     return JsonResponse({'ok': True, 'quote': quote.as_dict()}, status=201)
 
 
@@ -465,6 +467,7 @@ def quotes_update(request, quote_id):
                     setattr(line, f'price_{i}', line_data.get(f'price_{i}'))
                 line.save()
 
+    _audit_log(request, actor, action='quote.update', entity_type='quote', entity_id=quote.id, project=quote.project, metadata={'quote_number': quote.quote_number})
     return JsonResponse({'ok': True, 'quote': quote.as_dict()})
 
 
@@ -487,7 +490,10 @@ def quotes_delete(request, quote_id):
         return JsonResponse({'error': 'Quote not found'}, status=404)
 
     quote_number = quote.quote_number
+    quote_id_val = quote.id
+    proj = quote.project
     quote.delete()
+    _audit_log(request, actor, action='quote.delete', entity_type='quote', entity_id=quote_id_val, project=proj, metadata={'quote_number': quote_number})
     return JsonResponse({'ok': True, 'deleted': quote_number})
 
 

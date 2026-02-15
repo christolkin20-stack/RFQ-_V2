@@ -14,7 +14,10 @@ Scope owner: RFQ app (Django + JS)
 - ✅ PR4: Project visibility ACL enforcement + `project access` API
 - ✅ PR5: Lock API (acquire/heartbeat/release/status/force unlock)
 - ✅ RC tests currently green (`supplier_flow`, `quote_roundtrip`, `rc1_dryrun`)
-- 🔄 Next: lock UI integration + admin pages + broader audit coverage
+- ✅ Lock UI integration implemented (item-detail + key edit views)
+- ✅ Admin API + basic admin UI panels implemented (users/companies/audit logs)
+- ✅ Broader audit coverage started (locks, ACL updates, quote mutations, supplier decisions)
+- 🔄 Next: finalize admin UX polish + enforce ACL checks in remaining edge endpoints + completion review
 
 ---
 

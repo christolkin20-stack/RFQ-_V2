@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .api_common import (
+    audit_log as _audit_log,
     get_buyer_username as _get_buyer_username,
     json_body as _json_body,
     require_auth_and_profile as _require_auth_and_profile,
@@ -643,6 +644,7 @@ def supplier_access_approve(request, token):
             logger.warning('Failed to create Quote on approval: %s', e)
 
     logger.info('Approved %d/%d items for %s (unmatched: %d)', updates_count, len(items), access.supplier_name, unmatched_count)
+    _audit_log(request, actor, action='supplier.approve', entity_type='supplier_access', entity_id=access.id, project=proj, metadata={'updated_items': updates_count, 'unmatched_items': unmatched_count, 'status': access.status})
     return JsonResponse({'ok': True, 'updated_items': updates_count, 'unmatched_items': unmatched_count, 'quote_number': quote_obj.quote_number if 'quote_obj' in dir() else None})
 
 
@@ -720,6 +722,7 @@ def supplier_access_reject(request, token):
 
         access.save()
 
+    _audit_log(request, actor, action='supplier.decision', entity_type='supplier_access', entity_id=access.id, project=access.project, metadata={'new_status': access.status, 'round': access.round})
     return JsonResponse({'ok': True, 'new_status': access.status, 'round': access.round})
 
 
@@ -905,6 +908,7 @@ def supplier_access_cancel(request, token):
     access.status = 'expired'
     access.save(update_fields=['status'])
 
+    _audit_log(request, actor, action='supplier.cancel', entity_type='supplier_access', entity_id=access.id, project=access.project, metadata={'status': access.status})
     return JsonResponse({'ok': True, 'access': access.as_dict()})
 
 
@@ -952,6 +956,7 @@ def supplier_access_reopen_buyer(request, token):
             logger.warning('Could not refresh items for reopen %s', access.id)
         access.save()
 
+    _audit_log(request, actor, action='supplier.reopen', entity_type='supplier_access', entity_id=access.id, project=access.project, metadata={'status': access.status, 'round': access.round})
     return JsonResponse({'ok': True, 'access': access.as_dict()})
 
 
