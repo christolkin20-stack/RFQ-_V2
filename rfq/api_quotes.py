@@ -9,10 +9,40 @@ from django.views.decorators.csrf import csrf_exempt
 from .api_common import (
     get_buyer_username as _get_buyer_username,
     json_body as _json_body,
-    require_buyer_auth as _require_buyer_auth,
+    require_auth_and_profile as _require_auth_and_profile,
     require_same_origin_for_unsafe as _require_same_origin_for_unsafe,
 )
 from .models import Project, Quote, QuoteLine, SupplierAccess
+
+
+def _projects_qs_for_actor(actor):
+    qs = Project.objects.all()
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
+
+
+def _quotes_qs_for_actor(actor):
+    qs = Quote.objects.select_related('project')
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
+
+
+def _portal_qs_for_actor(actor):
+    qs = SupplierAccess.objects.select_related('project').filter(status__in=['submitted', 'approved', 're_quote_requested'])
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
 
 
 def _normalize_name(s):
@@ -49,7 +79,7 @@ def quotes_list(request):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -61,8 +91,8 @@ def quotes_list(request):
     from django.db.models import Q
     from django.utils import timezone
 
-    manual_qs = Quote.objects.all()
-    portal_qs = SupplierAccess.objects.select_related('project').filter(status__in=['submitted', 'approved', 're_quote_requested'])
+    manual_qs = _quotes_qs_for_actor(actor)
+    portal_qs = _portal_qs_for_actor(actor)
 
     project_id = request.GET.get('project_id')
     if project_id:
@@ -151,7 +181,7 @@ def quotes_detail(request, quote_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -160,7 +190,7 @@ def quotes_detail(request, quote_id):
         return csrf_err
 
     try:
-        quote = Quote.objects.get(id=quote_id)
+        quote = _quotes_qs_for_actor(actor).get(id=quote_id)
         data = quote.as_dict()
         data['lines'] = [line.as_dict() for line in quote.lines.all()]
         data['source_type'] = 'manual'
@@ -169,7 +199,7 @@ def quotes_detail(request, quote_id):
         pass
 
     try:
-        access = SupplierAccess.objects.select_related('project').get(id=quote_id)
+        access = _portal_qs_for_actor(actor).get(id=quote_id)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Quote not found'}, status=404)
 
@@ -267,7 +297,7 @@ def quotes_create(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -355,7 +385,7 @@ def quotes_update(request, quote_id):
     if request.method not in ('PUT', 'POST'):
         return HttpResponseNotAllowed(['PUT', 'POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -364,7 +394,7 @@ def quotes_update(request, quote_id):
         return csrf_err
 
     try:
-        quote = Quote.objects.get(id=quote_id)
+        quote = _quotes_qs_for_actor(actor).get(id=quote_id)
     except Quote.DoesNotExist:
         return JsonResponse({'error': 'Quote not found'}, status=404)
 
@@ -443,7 +473,7 @@ def quotes_delete(request, quote_id):
     if request.method != 'DELETE':
         return HttpResponseNotAllowed(['DELETE'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -452,7 +482,7 @@ def quotes_delete(request, quote_id):
         return csrf_err
 
     try:
-        quote = Quote.objects.get(id=quote_id)
+        quote = _quotes_qs_for_actor(actor).get(id=quote_id)
     except Quote.DoesNotExist:
         return JsonResponse({'error': 'Quote not found'}, status=404)
 
@@ -466,7 +496,7 @@ def quotes_create_from_item(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -489,7 +519,7 @@ def quotes_create_from_item(request):
         return JsonResponse({'error': 'Missing required fields (project_id, item_id, supplier_name)'}, status=400)
 
     try:
-        proj = Project.objects.get(id=pid)
+        proj = _projects_qs_for_actor(actor).get(id=pid)
     except Project.DoesNotExist:
         return JsonResponse({'error': 'Project not found'}, status=404)
 
@@ -547,7 +577,7 @@ def quotes_export_to_item(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -571,7 +601,7 @@ def quotes_export_to_item(request):
         return JsonResponse({'error': 'Missing project_id or line_ids'}, status=400)
 
     try:
-        proj = Project.objects.get(id=pid)
+        proj = _projects_qs_for_actor(actor).get(id=pid)
     except Project.DoesNotExist:
         return JsonResponse({'error': 'Project Not Found'}, status=404)
 
@@ -646,7 +676,7 @@ def quotes_bulk_import(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -674,7 +704,7 @@ def quotes_bulk_import(request):
                 now_str = timezone.now().strftime('%Y%m%d_%H%M')
                 q_num = f"{sname.replace(' ', '_').upper()}_{now_str}_{random.randint(1000, 9999)}"
 
-            quote, _created = Quote.objects.update_or_create(
+            quote, _created = _quotes_qs_for_actor(actor).update_or_create(
                 quote_number=q_num,
                 defaults={
                     'supplier_name': sname,
@@ -714,7 +744,7 @@ def quotes_upsert_from_planner(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -736,7 +766,7 @@ def quotes_upsert_from_planner(request):
         return JsonResponse({'error': 'Missing project_id or supplier_name'}, status=400)
 
     try:
-        proj = Project.objects.get(id=pid)
+        proj = _projects_qs_for_actor(actor).get(id=pid)
     except Project.DoesNotExist:
         return JsonResponse({'error': 'Project not found'}, status=404)
 
@@ -766,7 +796,7 @@ def quotes_upsert_from_planner(request):
     try:
         with transaction.atomic():
             is_update = False
-            quote = Quote.objects.filter(quote_number=q_num, project=proj).first() if q_num else None
+            quote = _quotes_qs_for_actor(actor).filter(quote_number=q_num, project=proj).first() if q_num else None
             if quote:
                 is_update = True
                 quote.supplier_name = sname
@@ -783,7 +813,7 @@ def quotes_upsert_from_planner(request):
             else:
                 if not q_num:
                     q_num = f"{_normalize_name(sname)[:15]}_{now.strftime('%Y%m%d_%H%M')}"
-                    if Quote.objects.filter(quote_number=q_num).exists():
+                    if _quotes_qs_for_actor(actor).filter(quote_number=q_num).exists():
                         import random
                         q_num += f"_{random.randint(100, 999)}"
 

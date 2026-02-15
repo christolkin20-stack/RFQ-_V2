@@ -11,12 +11,42 @@ from django.views.decorators.csrf import csrf_exempt
 from .api_common import (
     get_buyer_username as _get_buyer_username,
     json_body as _json_body,
-    require_buyer_auth as _require_buyer_auth,
+    require_auth_and_profile as _require_auth_and_profile,
     require_same_origin_for_unsafe as _require_same_origin_for_unsafe,
 )
 from .models import Project, Quote, QuoteLine, SupplierAccess, SupplierAccessRound, SupplierInteractionFile
 
 logger = logging.getLogger(__name__)
+
+
+def _projects_qs_for_actor(actor):
+    qs = Project.objects.all()
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
+
+
+def _supplier_access_qs_for_actor(actor):
+    qs = SupplierAccess.objects.select_related('project')
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
+
+
+def _quotes_qs_for_actor(actor):
+    qs = Quote.objects.select_related('project')
+    if actor and actor.get('is_superadmin'):
+        return qs
+    company = (actor or {}).get('company')
+    if company is None:
+        return qs.none()
+    return qs.filter(company=company)
 
 
 def _normalize_name(s):
@@ -105,7 +135,7 @@ def supplier_access_generate(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -121,7 +151,7 @@ def supplier_access_generate(request):
         return JsonResponse({'error': 'project_id and supplier_name required'}, status=400)
 
     try:
-        proj = Project.objects.get(id=pid)
+        proj = _projects_qs_for_actor(actor).get(id=pid)
     except Project.DoesNotExist:
         return JsonResponse({'error': 'Project not found'}, status=404)
 
@@ -280,7 +310,7 @@ def supplier_access_approve(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -289,7 +319,7 @@ def supplier_access_approve(request, token):
         return csrf_err
 
     try:
-        access = SupplierAccess.objects.get(id=token)
+        access = _supplier_access_qs_for_actor(actor).get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Invalid token'}, status=404)
 
@@ -327,7 +357,7 @@ def supplier_access_approve(request, token):
     updated_item_keys = set()
 
     with transaction.atomic():
-        proj = Project.objects.select_for_update().get(id=access.project_id)
+        proj = _projects_qs_for_actor(actor).select_for_update().get(id=access.project_id)
         pdata = proj.data or {}
         items = pdata.get('items') or []
 
@@ -459,6 +489,7 @@ def supplier_access_approve(request, token):
         round_rec = SupplierAccessRound.objects.filter(supplier_access=access, round=access.round).first()
         if not round_rec:
             round_rec = SupplierAccessRound.objects.create(
+                company=access.company,
                 supplier_access=access,
                 round=access.round,
                 requested_items=access.requested_items,
@@ -473,7 +504,7 @@ def supplier_access_approve(request, token):
         from datetime import timedelta
         try:
             q_num = quote_number or f"{_normalize_name(access.supplier_name)[:15]}_{now.strftime('%Y%m%d_%H%M')}"
-            existing_quote = Quote.objects.filter(quote_number=q_num, project=proj).first()
+            existing_quote = _quotes_qs_for_actor(actor).filter(quote_number=q_num, project=proj).first()
             if existing_quote:
                 existing_quote.supplier_name = access.supplier_name
                 existing_quote.currency = quote_currency
@@ -500,12 +531,13 @@ def supplier_access_approve(request, token):
                     except (ValueError, TypeError):
                         pass
 
-                if Quote.objects.filter(quote_number=q_num).exists():
+                if _quotes_qs_for_actor(actor).filter(quote_number=q_num).exists():
                     import random
                     q_num += f"_{random.randint(100, 999)}"
 
                 quote_obj = Quote.objects.create(
                     id=uuid.uuid4().hex,
+                    company=proj.company,
                     project=proj,
                     project_name=proj.name,
                     supplier_name=access.supplier_name,
@@ -619,7 +651,7 @@ def supplier_access_reject(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -628,7 +660,7 @@ def supplier_access_reject(request, token):
         return csrf_err
 
     try:
-        access = SupplierAccess.objects.get(id=token)
+        access = _supplier_access_qs_for_actor(actor).get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Invalid token'}, status=404)
 
@@ -646,6 +678,7 @@ def supplier_access_reject(request, token):
         round_rec = SupplierAccessRound.objects.filter(supplier_access=access, round=access.round).first()
         if not round_rec:
             round_rec = SupplierAccessRound.objects.create(
+                company=access.company,
                 supplier_access=access,
                 round=access.round,
                 requested_items=access.requested_items,
@@ -695,7 +728,7 @@ def project_supplier_access_list(request, project_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -704,7 +737,7 @@ def project_supplier_access_list(request, project_id):
         return csrf_err
 
     pid = str(project_id)
-    qs = SupplierAccess.objects.filter(project_id=pid).order_by('-created_at')
+    qs = _supplier_access_qs_for_actor(actor).filter(project_id=pid).order_by('-created_at')
 
     data = []
     for acc in qs:
@@ -768,7 +801,7 @@ def supplier_access_request_reopen(request, token):
         return HttpResponseNotAllowed(['POST'])
 
     try:
-        access = SupplierAccess.objects.get(id=token)
+        access = _supplier_access_qs_for_actor(actor).get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
 
@@ -796,7 +829,7 @@ def supplier_access_update_items(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -805,7 +838,7 @@ def supplier_access_update_items(request, token):
         return csrf_err
 
     try:
-        access = SupplierAccess.objects.select_for_update().get(id=token)
+        access = _supplier_access_qs_for_actor(actor).select_for_update().get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
 
@@ -856,7 +889,7 @@ def supplier_access_cancel(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -865,7 +898,7 @@ def supplier_access_cancel(request, token):
         return csrf_err
 
     try:
-        access = SupplierAccess.objects.get(id=token)
+        access = _supplier_access_qs_for_actor(actor).get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
 
@@ -880,7 +913,7 @@ def supplier_access_reopen_buyer(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -889,7 +922,7 @@ def supplier_access_reopen_buyer(request, token):
         return csrf_err
 
     try:
-        access = SupplierAccess.objects.get(id=token)
+        access = _supplier_access_qs_for_actor(actor).get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
 
@@ -927,7 +960,7 @@ def supplier_access_bulk_generate(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    auth_err = _require_buyer_auth(request)
+    actor, auth_err = _require_auth_and_profile(request)
     if auth_err:
         return auth_err
 
@@ -943,7 +976,7 @@ def supplier_access_bulk_generate(request):
         return JsonResponse({'error': 'project_id and supplier_names required'}, status=400)
 
     try:
-        proj = Project.objects.get(id=pid)
+        proj = _projects_qs_for_actor(actor).get(id=pid)
     except Project.DoesNotExist:
         return JsonResponse({'error': 'Project not found'}, status=404)
 
