@@ -1,6 +1,25 @@
+# Python
 .venv/
+venv/
 __pycache__/
-db.sqlite3
 *.pyc
-staticfiles/
+.pytest_cache/
+
+# Django runtime
+/db.sqlite3
+/staticfiles/
+/media/
+
+# IDE / local tools
+.idea/
+.vscode/
+.claude/
 .DS_Store
+
+# Local dumps / heavy artifacts
+*.jsonl
+rfq_backup_*.json
+*_backup_*.json
+
+# OS / misc
+Thumbs.db
