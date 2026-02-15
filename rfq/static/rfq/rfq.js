@@ -6603,6 +6603,17 @@ window.SystemApps.rfq = {
         let currentViewedSupplier = '';
         let itemDetailReturnView = 'items';
 
+        // Collaborative edit-lock state (item-detail first)
+        let __editLock = {
+            resourceKey: '',
+            projectId: '',
+            context: '',
+            heartbeatTimer: null,
+            readOnly: false,
+            ownerDisplay: '',
+            expiresAt: ''
+        };
+
         let selectedItems = new Set(); // Track selected item indices
 
         // Items SuperTable instance (shared across handlers)
@@ -6630,6 +6641,153 @@ window.SystemApps.rfq = {
             }
             return document.getElementById(id);
         };
+
+
+        async function _lockFetchJson(url, options = {}) {
+            const opts = {
+                method: options.method || 'GET',
+                headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                credentials: 'same-origin'
+            };
+            if (options.body !== undefined) opts.body = JSON.stringify(options.body);
+            const r = await fetch(url, opts);
+            let data = {};
+            try { data = await r.json(); } catch (_) { }
+            if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+            return data;
+        }
+
+        function _buildItemResourceKey(item, index) {
+            const pid = String(currentProject?.id || '');
+            const iid = String(item?.id || item?.item_drawing_no || item?.drawing_no || item?.mpn || index || '').trim();
+            return `project:${pid}:item:${iid}:view:item-detail`;
+        }
+
+        function _itemDetailSetReadOnly(on, message = '') {
+            const root = getEl('view-item-detail');
+            if (!root) return;
+            __editLock.readOnly = !!on;
+
+            const saveIds = ['btn-item-detail-save', 'btn-item-detail-save-back', 'btn-save-detail', 'btn-save-detail-no-close', 'btn-item-detail-delete'];
+            saveIds.forEach(id => {
+                const b = getEl(id);
+                if (b) b.disabled = !!on;
+            });
+
+            root.querySelectorAll('input, textarea, select, button').forEach(el => {
+                if (!on) {
+                    if (el.dataset && el.dataset.lockReadonly === '1') {
+                        el.disabled = false;
+                        delete el.dataset.lockReadonly;
+                    }
+                    return;
+                }
+
+                const id = el.id || '';
+                const safeIds = new Set(['btn-item-detail-back', 'btn-close-detail-window']);
+                if (safeIds.has(id)) return;
+
+                // Keep non-mutating nav clickable; disable mutating controls + form fields.
+                const isField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName);
+                const isSaveBtn = /save|delete|uložit|post|upload|add|create|import|export/i.test((el.textContent || '') + ' ' + id + ' ' + (el.className || ''));
+                if (isField || isSaveBtn) {
+                    if (el.dataset) el.dataset.lockReadonly = '1';
+                    el.disabled = true;
+                }
+            });
+
+            const bid = 'item-detail-lock-banner';
+            let banner = document.getElementById(bid);
+            if (on) {
+                if (!banner) {
+                    banner = document.createElement('div');
+                    banner.id = bid;
+                    banner.style.cssText = 'margin:8px 0; padding:10px 12px; border:1px solid #f59e0b; background:#fffbeb; color:#92400e; border-radius:8px; font-size:12px; font-weight:600;';
+                    const body = getEl('item-detail-page-body') || root;
+                    body.prepend(banner);
+                }
+                banner.textContent = message || '⚠️ Item is currently edited by another user. Read-only mode is active.';
+            } else if (banner) {
+                banner.remove();
+            }
+        }
+
+        function _clearEditLockTimers() {
+            if (__editLock.heartbeatTimer) {
+                clearInterval(__editLock.heartbeatTimer);
+                __editLock.heartbeatTimer = null;
+            }
+        }
+
+        async function _releaseEditLock() {
+            try {
+                const key = __editLock.resourceKey;
+                if (!key) return;
+                await _lockFetchJson('/api/locks/release', { method: 'POST', body: { resource_key: key } });
+            } catch (_) { }
+            finally {
+                _clearEditLockTimers();
+                __editLock.resourceKey = '';
+                __editLock.readOnly = false;
+                __editLock.ownerDisplay = '';
+                __editLock.expiresAt = '';
+                _itemDetailSetReadOnly(false);
+            }
+        }
+
+        async function _acquireItemDetailLock(item, index) {
+            if (!currentProject) return;
+            const key = _buildItemResourceKey(item, index);
+            __editLock.resourceKey = key;
+            __editLock.projectId = String(currentProject.id || '');
+            __editLock.context = 'item-detail';
+
+            try {
+                const res = await _lockFetchJson('/api/locks/acquire', {
+                    method: 'POST',
+                    body: {
+                        resource_key: key,
+                        project_id: __editLock.projectId,
+                        context: 'item-detail',
+                        ttl_sec: 180
+                    }
+                });
+
+                if (!res?.acquired) {
+                    const owner = res?.owner?.display || 'another user';
+                    const until = res?.expires_at ? new Date(res.expires_at).toLocaleTimeString() : '';
+                    const msg = `⚠️ This item is currently edited by ${owner}${until ? ` (until ${until})` : ''}. Read-only mode is active.`;
+                    __editLock.readOnly = true;
+                    __editLock.ownerDisplay = owner;
+                    __editLock.expiresAt = res?.expires_at || '';
+                    _itemDetailSetReadOnly(true, msg);
+                    return;
+                }
+
+                __editLock.readOnly = false;
+                _itemDetailSetReadOnly(false);
+                _clearEditLockTimers();
+                __editLock.heartbeatTimer = setInterval(async () => {
+                    try {
+                        const hb = await _lockFetchJson('/api/locks/heartbeat', {
+                            method: 'POST',
+                            body: { resource_key: key, ttl_sec: 180 }
+                        });
+                        if (!hb?.renewed) {
+                            _clearEditLockTimers();
+                            __editLock.readOnly = true;
+                            _itemDetailSetReadOnly(true, '⚠️ Your edit lock expired. Read-only mode is active. Reopen item detail to continue editing.');
+                            showToast('Edit lock expired — switched to read-only', 'warning');
+                        }
+                    } catch (_) {
+                        // do not spam toasts on transient network errors
+                    }
+                }, 60000);
+            } catch (e) {
+                console.warn('Lock acquire failed:', e);
+                // soft fallback: keep editable when lock service unavailable
+            }
+        }
 
         // Global formatMoney function that uses settings for decimal places
         const formatMoney = (n, forceDecimals) => {
@@ -9887,6 +10045,10 @@ window.SystemApps.rfq = {
         }
 
         function switchView(view) {
+            const prevView = currentView;
+            if (prevView === 'item-detail' && view !== 'item-detail') {
+                try { _releaseEditLock(); } catch (_) { }
+            }
             currentView = view;
 
             // Close any open dropdowns
@@ -18622,6 +18784,7 @@ Best regards`)}</textarea>
                 if (isNaN(index)) return;
 
                 const item = currentProject.items[index];
+            try { _acquireItemDetailLock(item, index); } catch (_) { }
                 ensureItemShape(item);
                 if (!item) return;
 
@@ -24301,6 +24464,7 @@ Best regards`)}</textarea>
             const wasDetailView = (currentView === 'item-detail') || isDetailVisible;
 
             currentDetailIndex = null;
+            try { _releaseEditLock(); } catch (_) { }
 
             if (wasDetailView) {
                 const ret = itemDetailReturnView || 'items';
