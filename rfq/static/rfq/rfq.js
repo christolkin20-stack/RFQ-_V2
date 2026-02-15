@@ -18218,6 +18218,23 @@ Best regards`)}</textarea>
                 const res = await fetch('/api/session/me', { credentials: 'same-origin' });
                 if (!res.ok) return;
                 const data = await res.json();
+
+                // Session safety: prevent cross-user local cache leak in shared browser
+                try {
+                    const sessionKey = `${data.user_id || ''}:${data.username || ''}:${data.company_id || ''}:${data.role || ''}`;
+                    const prevKey = localStorage.getItem('rfq_last_session_key');
+                    if (prevKey && prevKey !== sessionKey) {
+                        localStorage.removeItem('rfq_projects_v1');
+                        localStorage.removeItem('rfq_active_project_id');
+                        localStorage.removeItem('rfq_current_view_state');
+                        localStorage.removeItem('rfq_main_projects_page');
+                        localStorage.setItem('rfq_last_session_key', sessionKey);
+                        location.reload();
+                        return;
+                    }
+                    localStorage.setItem('rfq_last_session_key', sessionKey);
+                } catch (e) { }
+
                 const topUser = document.getElementById('topbar-user');
                 if (topUser && data) {
                     const role = data.role ? ` (${data.role})` : '';
