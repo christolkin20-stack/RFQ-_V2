@@ -5,7 +5,7 @@ from .models import SupplierAccess
 
 def app(request, bundle_id=None):
     return render(request, 'rfq/app.html', {
-        'build_version': 'django-v112-quotes-fixed',
+        'build_version': 'django-v119-approve-creates-quote',
     })
 
 
