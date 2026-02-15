@@ -484,6 +484,7 @@ def supplier_access_approve(request, token):
                     q_num += f"_{random.randint(100, 999)}"
 
                 quote_obj = Quote.objects.create(
+                    id=uuid.uuid4().hex,
                     project=proj,
                     project_name=proj.name,
                     supplier_name=access.supplier_name,

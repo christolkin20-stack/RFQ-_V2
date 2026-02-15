@@ -506,6 +506,7 @@ def quotes_create_from_item(request):
     user = _get_buyer_username(request)
 
     quote = Quote.objects.create(
+        id=str(uuid.uuid4()),
         project=proj,
         project_name=proj.name,
         supplier_name=sname,
@@ -787,6 +788,7 @@ def quotes_upsert_from_planner(request):
                         q_num += f"_{random.randint(100, 999)}"
 
                 quote = Quote.objects.create(
+                    id=str(uuid.uuid4()),
                     project=proj,
                     project_name=proj.name,
                     supplier_name=sname,
