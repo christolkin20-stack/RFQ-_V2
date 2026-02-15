@@ -26,6 +26,10 @@ urlpatterns = [
     path('api/locks/status', api_projects.locks_status, name='api_locks_status'),
     path('api/locks/force_unlock', api_projects.locks_force_unlock, name='api_locks_force_unlock'),
 
+    # Admin management API (in-app admin page backend)
+    path('api/admin/users', api_projects.admin_users, name='api_admin_users'),
+    path('api/admin/companies', api_projects.admin_companies, name='api_admin_companies'),
+
     # Supplier Interaction API
     path('api/supplier_access/generate', api_supplier.supplier_access_generate, name='api_supplier_access_generate'),
     path('api/supplier_access/<str:token>/submit', api_supplier.supplier_portal_submit, name='api_supplier_portal_submit'),

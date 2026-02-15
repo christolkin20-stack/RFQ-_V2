@@ -16,7 +16,7 @@ from .api_common import (
     require_same_origin_for_unsafe,
     json_body,
 )
-from .models import Project, Attachment, EditLock, ProjectAccess
+from .models import Company, Project, Attachment, EditLock, ProjectAccess, UserCompanyProfile
 from . import views_api as _v
 
 
@@ -676,6 +676,141 @@ def locks_force_unlock(request):
     if deleted:
         audit_log(request, actor, action='lock.force_unlock', entity_type='lock', entity_id=resource_key)
     return JsonResponse({'ok': True, 'forced': bool(deleted)})
+
+
+@csrf_exempt
+def admin_users(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if not require_role(actor, 'admin'):
+        return JsonResponse({'error': 'Admin permission required'}, status=403)
+
+    company = actor.get('company')
+
+    if request.method == 'GET':
+        q = UserCompanyProfile.objects.select_related('user', 'company').filter(is_active=True)
+        if not actor.get('is_superadmin'):
+            q = q.filter(company=company)
+
+        data = []
+        for p in q.order_by('company_id', 'user_id'):
+            data.append({
+                'user_id': p.user_id,
+                'username': getattr(p.user, 'username', ''),
+                'email': getattr(p.user, 'email', ''),
+                'company_id': p.company_id,
+                'company_name': p.company.name if p.company else '',
+                'role': p.role,
+                'is_management': bool(p.is_management),
+                'is_active': bool(p.is_active),
+            })
+        return JsonResponse({'users': data})
+
+    if request.method == 'POST':
+        payload = json_body(request)
+        if not isinstance(payload, dict):
+            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+        try:
+            uid = int(payload.get('user_id'))
+        except Exception:
+            return JsonResponse({'error': 'user_id required'}, status=400)
+
+        profile = UserCompanyProfile.objects.filter(user_id=uid).select_related('company').first()
+        if not profile:
+            return JsonResponse({'error': 'Profile not found'}, status=404)
+
+        if not actor.get('is_superadmin') and profile.company_id != getattr(company, 'id', None):
+            return JsonResponse({'error': 'Access denied'}, status=403)
+
+        role = str(payload.get('role') or profile.role).strip().lower()
+        allowed_roles = {'admin', 'editor', 'viewer', 'superadmin'}
+        if role not in allowed_roles:
+            return JsonResponse({'error': 'Invalid role'}, status=400)
+
+        if not actor.get('is_superadmin') and role == 'superadmin':
+            return JsonResponse({'error': 'Only superadmin can assign superadmin role'}, status=403)
+
+        profile.role = role
+        if 'is_management' in payload:
+            profile.is_management = bool(payload.get('is_management'))
+        if 'is_active' in payload:
+            profile.is_active = bool(payload.get('is_active'))
+
+        if actor.get('is_superadmin') and 'company_id' in payload:
+            cid = payload.get('company_id')
+            if cid in (None, '', 'null'):
+                profile.company = None
+            else:
+                c = Company.objects.filter(id=cid).first()
+                if not c:
+                    return JsonResponse({'error': 'Company not found'}, status=404)
+                profile.company = c
+
+        profile.save()
+
+        audit_log(
+            request, actor,
+            action='admin.user.update',
+            entity_type='user',
+            entity_id=str(uid),
+            metadata={'role': profile.role, 'is_management': profile.is_management, 'is_active': profile.is_active, 'company_id': profile.company_id},
+        )
+
+        return JsonResponse({'ok': True})
+
+    return HttpResponseNotAllowed(['GET', 'POST'])
+
+
+@csrf_exempt
+def admin_companies(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    csrf_err = require_same_origin_for_unsafe(request)
+    if csrf_err:
+        return csrf_err
+
+    if not actor.get('is_superadmin'):
+        return JsonResponse({'error': 'Superadmin permission required'}, status=403)
+
+    if request.method == 'GET':
+        rows = []
+        for c in Company.objects.all().order_by('name'):
+            rows.append({
+                'id': c.id,
+                'name': c.name,
+                'is_active': bool(c.is_active),
+            })
+        return JsonResponse({'companies': rows})
+
+    if request.method == 'POST':
+        payload = json_body(request)
+        if not isinstance(payload, dict):
+            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+        name = str(payload.get('name') or '').strip()
+        if not name:
+            return JsonResponse({'error': 'name required'}, status=400)
+
+        c, created = Company.objects.get_or_create(name=name, defaults={'is_active': True})
+        if 'is_active' in payload:
+            c.is_active = bool(payload.get('is_active'))
+            c.save(update_fields=['is_active', 'updated_at'])
+
+        audit_log(request, actor, action='admin.company.upsert', entity_type='company', entity_id=str(c.id), metadata={'created': created, 'name': c.name, 'is_active': c.is_active})
+
+        return JsonResponse({'ok': True, 'company': {'id': c.id, 'name': c.name, 'is_active': c.is_active}})
+
+    return HttpResponseNotAllowed(['GET', 'POST'])
+
 
 
 # bridge until export module extraction
