@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from django.conf import settings as django_settings
 from django.http import JsonResponse
 
-from .models import ProjectAccess, UserCompanyProfile
+from .models import AuditLog, ProjectAccess, UserCompanyProfile
 
 logger = logging.getLogger(__name__)
 
@@ -200,3 +200,28 @@ def can_edit_project(actor, project):
         return qs.filter(user_id=user.id, can_edit=True).exists()
 
     return False
+
+
+def audit_log(request, actor, action, entity_type='', entity_id='', project=None, metadata=None):
+    """Best-effort audit log writer (never raises)."""
+    try:
+        user = (actor or {}).get('user')
+        role = (actor or {}).get('role') or ''
+        company = (actor or {}).get('company')
+        ip = (request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR') or '').split(',')[0].strip()
+        ua = (request.META.get('HTTP_USER_AGENT') or '')[:255]
+
+        AuditLog.objects.create(
+            company=company,
+            actor=user if getattr(user, 'is_authenticated', False) else None,
+            actor_role=role,
+            action=str(action or '')[:64],
+            entity_type=str(entity_type or '')[:64],
+            entity_id=str(entity_id or '')[:128],
+            project=project,
+            metadata_json=metadata or {},
+            ip=ip,
+            user_agent=ua,
+        )
+    except Exception:
+        pass

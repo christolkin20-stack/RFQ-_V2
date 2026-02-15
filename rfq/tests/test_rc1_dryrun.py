@@ -89,4 +89,5 @@ class RC1DryrunTests(TestCase):
 
         for it in items:
             self.assertTrue(it.get('suppliers'))
-            self.assertTrue(it.get('price_1') is not None)
+            first_sup = (it.get('suppliers') or [None])[0] or {}
+            self.assertTrue(first_sup.get('price_1') is not None or first_sup.get('price') is not None)

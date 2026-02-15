@@ -2,9 +2,19 @@
 
 ## RFQ Enterprise Upgrade Blueprint
 
-Status: **Approved by user**  
+Status: **In Progress (implementation running)**  
 Date: 2026-02-15  
 Scope owner: RFQ app (Django + JS)
+
+### Implementation Progress Snapshot
+
+- ✅ PR1: Core schema (Company/Profile/ACL/Locks/Audit) + backfill migrations
+- ✅ PR2: Project API company scoping
+- ✅ PR3: Quotes + buyer Supplier API company scoping
+- ✅ PR4: Project visibility ACL enforcement + `project access` API
+- ✅ PR5: Lock API (acquire/heartbeat/release/status/force unlock)
+- ✅ RC tests currently green (`supplier_flow`, `quote_roundtrip`, `rc1_dryrun`)
+- 🔄 Next: lock UI integration + admin pages + broader audit coverage
 
 ---
 

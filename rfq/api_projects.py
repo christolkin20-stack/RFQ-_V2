@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .api_common import (
+    audit_log,
     can_edit_project,
     can_view_project,
     require_auth_and_profile,
@@ -452,6 +453,7 @@ def project_access(request, project_id: str):
                 )
                 created += 1
 
+        audit_log(request, actor, action='project.access.update', entity_type='project', entity_id=proj.id, project=proj, metadata={'created': created})
         return JsonResponse({'ok': True, 'created': created})
 
     return HttpResponseNotAllowed(['GET', 'POST'])
@@ -524,6 +526,8 @@ def locks_acquire(request):
         lock.expires_at = expires_at
         lock.save()
 
+    audit_log(request, actor, action='lock.acquire', entity_type='lock', entity_id=resource_key, project=project, metadata={'context': context, 'ttl_sec': ttl_sec})
+
     return JsonResponse({
         'ok': True,
         'acquired': True,
@@ -570,6 +574,8 @@ def locks_heartbeat(request):
         lock.expires_at = expires_at
         lock.save(update_fields=['expires_at', 'updated_at'])
 
+    audit_log(request, actor, action='lock.heartbeat', entity_type='lock', entity_id=resource_key, project=lock.project, metadata={'ttl_sec': ttl_sec})
+
     return JsonResponse({'ok': True, 'renewed': True, 'expires_at': expires_at.isoformat()})
 
 
@@ -600,6 +606,8 @@ def locks_release(request):
         q = q.filter(locked_by_id=user_id)
 
     deleted, _ = q.delete()
+    if deleted:
+        audit_log(request, actor, action='lock.release', entity_type='lock', entity_id=resource_key)
     return JsonResponse({'ok': True, 'released': bool(deleted)})
 
 
@@ -665,6 +673,8 @@ def locks_force_unlock(request):
         q = q.filter(company=company)
 
     deleted, _ = q.delete()
+    if deleted:
+        audit_log(request, actor, action='lock.force_unlock', entity_type='lock', entity_id=resource_key)
     return JsonResponse({'ok': True, 'forced': bool(deleted)})
 
 
