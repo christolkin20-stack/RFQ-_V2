@@ -285,6 +285,7 @@ def supplier_portal_submit(request, token):
         access.save()
 
         SupplierAccessRound.objects.create(
+            company=access.company,
             supplier_access=access,
             round=access.round,
             requested_items=access.requested_items,
@@ -295,6 +296,7 @@ def supplier_portal_submit(request, token):
 
         for f in files:
             SupplierInteractionFile.objects.create(
+                company=access.company,
                 supplier_access=access,
                 round=access.round,
                 file=f,

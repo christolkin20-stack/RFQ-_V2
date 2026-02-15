@@ -2,6 +2,11 @@ from django.conf import settings
 from django.db import models
 
 
+def get_default_company_id():
+    c, _ = Company.objects.get_or_create(name='Default Company', defaults={'is_active': True})
+    return c.id
+
+
 class Company(models.Model):
     name = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
@@ -41,13 +46,15 @@ class Project(models.Model):
     """Stores a single RFQ project as a JSON blob (compatible with the existing JS app shape)."""
 
     id = models.CharField(primary_key=True, max_length=64)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='projects')
     name = models.CharField(max_length=255, blank=True, default='Untitled')
     data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        if not self.company_id:
+            self.company_id = get_default_company_id()
         # Keep JSON blob consistent.
         if not isinstance(self.data, dict):
             self.data = {}
@@ -77,11 +84,19 @@ class Attachment(models.Model):
     """File attachment linked to a project (project detail page)."""
 
     id = models.CharField(primary_key=True, max_length=64)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='attachments', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='attachments')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to='attachments/')
     kind = models.CharField(max_length=32, blank=True, default='')  # e.g. 'cover' or 'file'
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.company_id:
+            if self.supplier_access_id and self.supplier_access and self.supplier_access.company_id:
+                self.company_id = self.supplier_access.company_id
+            else:
+                self.company_id = get_default_company_id()
+        super().save(*args, **kwargs)
 
     def as_dict(self):
         return {
@@ -101,7 +116,7 @@ class Attachment(models.Model):
 class SupplierAccess(models.Model):
     """Manages token-based access for suppliers."""
     id = models.CharField(primary_key=True, max_length=64)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_accesses', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_accesses')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='supplier_accesses')
     supplier_name = models.CharField(max_length=255)
     requested_items = models.JSONField(default=list)
@@ -137,6 +152,14 @@ class SupplierAccess(models.Model):
     contact_email = models.EmailField(max_length=255, blank=True, default='')
     contact_phone = models.CharField(max_length=64, blank=True, default='')
     instruction_message = models.TextField(blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        if not self.company_id:
+            if self.project_id and self.project and self.project.company_id:
+                self.company_id = self.project.company_id
+            else:
+                self.company_id = get_default_company_id()
+        super().save(*args, **kwargs)
 
     @property
     def is_editable(self):
@@ -187,7 +210,7 @@ class SupplierAccessRound(models.Model):
     Append-only history of negotiation rounds. 
     Created when a supplier submits (snapshot) OR when a buyer makes a decision.
     """
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_access_rounds', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_access_rounds')
     supplier_access = models.ForeignKey(SupplierAccess, on_delete=models.CASCADE, related_name='rounds')
     round = models.IntegerField()
     requested_items = models.JSONField(default=list) # Snapshot of what was asked
@@ -199,6 +222,14 @@ class SupplierAccessRound(models.Model):
     decision_reason = models.TextField(blank=True, null=True)
     decision_by = models.CharField(max_length=150, blank=True, null=True)
     decision_at = models.DateTimeField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.company_id:
+            if self.supplier_access_id and self.supplier_access and self.supplier_access.company_id:
+                self.company_id = self.supplier_access.company_id
+            else:
+                self.company_id = get_default_company_id()
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['round']
@@ -206,7 +237,7 @@ class SupplierAccessRound(models.Model):
 
 class SupplierInteractionFile(models.Model):
     """Secure file uploads linked to a specific round."""
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_interaction_files', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='supplier_interaction_files')
     supplier_access = models.ForeignKey(SupplierAccess, on_delete=models.CASCADE, related_name='files')
     round = models.IntegerField()
     file = models.FileField(upload_to='interaction_files/%Y/%m/')
@@ -214,6 +245,14 @@ class SupplierInteractionFile(models.Model):
     size = models.IntegerField(default=0)
     uploaded_by = models.CharField(max_length=50) # 'supplier' or 'buyer'
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.company_id:
+            if self.project_id and self.project and self.project.company_id:
+                self.company_id = self.project.company_id
+            else:
+                self.company_id = get_default_company_id()
+        super().save(*args, **kwargs)
 
     def as_dict(self):
         return {
@@ -241,7 +280,7 @@ class Quote(models.Model):
 
     # Identifikace
     id = models.CharField(primary_key=True, max_length=64)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='quotes', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='quotes')
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='quotes')
     project_name = models.CharField(max_length=255, blank=True, default='')  # Fallback když project=None
 
@@ -293,6 +332,11 @@ class Quote(models.Model):
     source_id = models.CharField(max_length=64, blank=True, default='', help_text='SupplierAccess ID pokud ze Supplier Portalu')
 
     def save(self, *args, **kwargs):
+        if not self.company_id:
+            if self.project_id and self.project and self.project.company_id:
+                self.company_id = self.project.company_id
+            else:
+                self.company_id = get_default_company_id()
         # Auto-generate quote_number if empty: SUPPLIER_YYYYMMDD_HHMM
         if not self.quote_number:
             from datetime import datetime

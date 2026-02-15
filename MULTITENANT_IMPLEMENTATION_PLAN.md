@@ -19,7 +19,8 @@ Scope owner: RFQ app (Django + JS)
 - ✅ Broader audit coverage started (locks, ACL updates, quote mutations, supplier decisions)
 - ✅ Admin UX improved (role/company/mgmt + audit + lock monitor)
 - ✅ Additional ACL edge hardening for quote project bindings/import paths
-- 🔄 Next: final completion checklist + optional non-null company enforcement migration (hardening phase)
+- ✅ Non-null company hardening migration implemented (`0009_enforce_company_not_null`)
+- 🔄 Next: final completion checklist + optional UI polish pass
 
 ---
 
