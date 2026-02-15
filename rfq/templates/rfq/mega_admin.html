@@ -6,18 +6,27 @@
   <title>Mega Admin Dashboard</title>
   <style>
     body{font-family:Inter,system-ui,Arial;margin:0;background:#0b1020;color:#e5e7eb}
-    .wrap{max-width:1200px;margin:0 auto;padding:18px}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .wrap{max-width:1280px;margin:0 auto;padding:18px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .card{background:#121a31;border:1px solid #243056;border-radius:12px;padding:12px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .stat{background:#0f172a;border:1px solid #243056;border-radius:10px;padding:10px}
+    .stat b{display:block;font-size:20px}
     h1{margin:0;font-size:22px}.muted{color:#94a3b8;font-size:12px}
     h3{margin:0 0 8px;font-size:14px}
     input,select,button{border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e5e7eb;padding:7px 8px;font-size:12px}
     button{cursor:pointer;background:#334155}
-    .list{max-height:300px;overflow:auto;border:1px solid #334155;border-radius:8px}
-    .row{padding:8px;border-bottom:1px solid #1f2937;font-size:12px;display:flex;justify-content:space-between;gap:8px}
+    button.primary{background:#2563eb;border-color:#1d4ed8}
+    button.warn{background:#7c2d12;border-color:#9a3412}
+    .list{max-height:360px;overflow:auto;border:1px solid #334155;border-radius:8px}
+    .row{padding:8px;border-bottom:1px solid #1f2937;font-size:12px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
     .row:last-child{border-bottom:0}
     .controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .badge{display:inline-block;padding:2px 6px;border-radius:99px;border:1px solid #334155;background:#0b1224;font-size:11px}
+    .toast{position:fixed;right:14px;bottom:14px;background:#0f172a;border:1px solid #334155;padding:10px 12px;border-radius:10px;display:none;max-width:340px}
+    .danger{color:#fca5a5}.ok{color:#86efac}
+    @media (max-width:1000px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
 <body>
@@ -25,12 +34,19 @@
     <div class="top">
       <div>
         <h1>🛡️ Mega Admin Dashboard</h1>
-        <div class="muted">Superuser control center: firmy, uživatelé, locky, audit</div>
+        <div class="muted">Interní administrace pro zaměstnance — firmy, uživatelé, locky, audit</div>
       </div>
       <div class="controls">
         <a href="/"><button>RFQ App</button></a>
         <a href="/admin/logout/"><button>Logout</button></a>
       </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="muted">Companies</span><b id="sCompanies">0</b></div>
+      <div class="stat"><span class="muted">Users</span><b id="sUsers">0</b></div>
+      <div class="stat"><span class="muted">Active Locks</span><b id="sLocks">0</b></div>
+      <div class="stat"><span class="muted">Audit (loaded)</span><b id="sAudit">0</b></div>
     </div>
 
     <div class="grid">
@@ -44,8 +60,11 @@
           <input id="ccity" placeholder="City" />
           <input id="czip" placeholder="Postal code" />
           <input id="ccountry" placeholder="Country" />
-          <button id="cadd">Add / Update</button>
+          <label class="muted"><input id="cactive" type="checkbox" checked /> active</label>
+          <button class="primary" id="cadd">Add / Update</button>
+          <button id="ccancel" style="display:none">Cancel edit</button>
         </div>
+        <div class="muted" id="cedit" style="display:none">Editing company ID: <span id="ceditid"></span></div>
         <div id="companies" class="list"></div>
       </div>
 
@@ -54,9 +73,13 @@
         <div class="controls">
           <input id="uname" placeholder="username" />
           <input id="uemail" placeholder="email" />
-          <input id="upass" placeholder="password" />
+          <input id="upass" placeholder="password" type="password" />
           <select id="urole"><option>viewer</option><option>editor</option><option>admin</option><option>superadmin</option></select>
-          <button id="ucreate">Create user</button>
+          <button class="primary" id="ucreate">Create user</button>
+        </div>
+        <div class="controls">
+          <input id="usearch" placeholder="Filter users (name/email/role/company)" />
+          <button id="urefresh">Refresh</button>
         </div>
         <div id="users" class="list"></div>
       </div>
@@ -72,6 +95,7 @@
         <div class="controls">
           <input id="af" placeholder="action filter" />
           <input id="ef" placeholder="entity filter" />
+          <input id="actorf" placeholder="actor contains (local filter)" />
           <button id="arefresh">Refresh</button>
         </div>
         <div id="audit" class="list"></div>
@@ -79,56 +103,165 @@
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
+
 <script>
+let state = { companies: [], users: [], locks: [], logs: [], editingCompanyId: null };
+
 async function j(url, o={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...o});const d=await r.json().catch(()=>({}));if(!r.ok) throw new Error(d.error||r.status);return d;}
-const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function toast(msg, ok=true){const el=document.getElementById('toast');el.className='toast '+(ok?'ok':'danger');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',2800)}
+function updateStats(){
+  document.getElementById('sCompanies').textContent = state.companies.length;
+  document.getElementById('sUsers').textContent = state.users.length;
+  document.getElementById('sLocks').textContent = state.locks.length;
+  document.getElementById('sAudit').textContent = state.logs.length;
+}
+
+function resetCompanyForm(){
+  state.editingCompanyId = null;
+  ['cname','cvat','creg','caddr','ccity','czip','ccountry'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cactive').checked=true;
+  document.getElementById('cedit').style.display='none';
+  document.getElementById('ccancel').style.display='none';
+}
+
+function setCompanyEdit(c){
+  state.editingCompanyId = c.id;
+  document.getElementById('cname').value = c.name || '';
+  document.getElementById('cvat').value = c.vat_number || '';
+  document.getElementById('creg').value = c.registration_number || '';
+  document.getElementById('caddr').value = c.address_line1 || '';
+  document.getElementById('ccity').value = c.city || '';
+  document.getElementById('czip').value = c.postal_code || '';
+  document.getElementById('ccountry').value = c.country || '';
+  document.getElementById('cactive').checked = !!c.is_active;
+  document.getElementById('ceditid').textContent = c.id;
+  document.getElementById('cedit').style.display='block';
+  document.getElementById('ccancel').style.display='inline-block';
+}
 
 async function loadCompanies(){
   const d=await j('/api/admin/companies');
+  state.companies = d.companies||[];
   const el=document.getElementById('companies');
-  el.innerHTML=(d.companies||[]).map(c=>`<div class='row'><div><b>${esc(c.name)}</b><div class='muted'>VAT: ${esc(c.vat_number||'')} • REG: ${esc(c.registration_number||'')} • ${esc([c.address_line1,c.city,c.postal_code,c.country].filter(Boolean).join(', '))}</div></div><div>${c.is_active?'active':'inactive'}</div></div>`).join('')||"<div class='row'>No companies</div>";
+  el.innerHTML=state.companies.map(c=>`<div class='row'>
+    <div>
+      <b>${esc(c.name)}</b> ${c.is_active?'<span class="badge">active</span>':'<span class="badge">inactive</span>'}
+      <div class='muted'>VAT: ${esc(c.vat_number||'—')} • REG: ${esc(c.registration_number||'—')}</div>
+      <div class='muted'>${esc([c.address_line1,c.city,c.postal_code,c.country].filter(Boolean).join(', ')||'No address')}</div>
+    </div>
+    <div class='controls'>
+      <button data-ce='${c.id}'>Edit</button>
+      <button data-ct='${c.id}' class='warn'>${c.is_active?'Deactivate':'Activate'}</button>
+    </div>
+  </div>`).join('')||"<div class='row'>No companies</div>";
+
+  el.querySelectorAll('[data-ce]').forEach(b=>b.onclick=()=>{const c=state.companies.find(x=>String(x.id)===String(b.dataset.ce)); if(c) setCompanyEdit(c)});
+  el.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{
+    const c=state.companies.find(x=>String(x.id)===String(b.dataset.ct)); if(!c) return;
+    if(!confirm(`${c.is_active?'Deactivate':'Activate'} company ${c.name}?`)) return;
+    await j('/api/admin/companies',{method:'POST',body:JSON.stringify({id:c.id,is_active:!c.is_active})});
+    toast('Company status updated');
+    await loadCompanies();
+  });
+  updateStats();
 }
+
 async function loadUsers(){
   const d=await j('/api/admin/users');
-  const companies=(await j('/api/admin/companies')).companies||[];
+  state.users = d.users||[];
+  const companies=state.companies;
+  const q=(document.getElementById('usearch').value||'').toLowerCase().trim();
+  const users=q?state.users.filter(u=>`${u.username} ${u.email||''} ${u.role||''} ${u.company_name||''}`.toLowerCase().includes(q)):state.users;
+
   const cOpts=(id)=>`<option value=''>none</option>`+companies.map(c=>`<option value='${c.id}' ${String(id)===String(c.id)?'selected':''}>${esc(c.name)}</option>`).join('');
   const el=document.getElementById('users');
-  el.innerHTML=(d.users||[]).map(u=>`<div class='row'>
-      <div><b>${esc(u.username)}</b><div class='muted'>${esc(u.email||'')}</div></div>
+  el.innerHTML=users.map(u=>`<div class='row'>
+      <div>
+        <b>${esc(u.username)}</b> <span class='badge'>${esc(u.role)}</span> ${u.is_management?'<span class="badge">mgmt</span>':''} ${u.is_active?'':'<span class="badge">inactive</span>'}
+        <div class='muted'>${esc(u.email||'')} • ${esc(u.company_name||'no company')}</div>
+        <div class='muted'>Last login: ${esc(u.last_login?u.last_login.replace('T',' ').slice(0,19):'never')}</div>
+      </div>
       <div class='controls'>
         <select data-r='${u.user_id}'>${['viewer','editor','admin','superadmin'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select>
         <label class='muted'><input type='checkbox' data-m='${u.user_id}' ${u.is_management?'checked':''}/>mgmt</label>
+        <label class='muted'><input type='checkbox' data-a='${u.user_id}' ${u.is_active?'checked':''}/>active</label>
         <select data-c='${u.user_id}'>${cOpts(u.company_id)}</select>
-        <button data-s='${u.user_id}'>Save</button>
+        <button data-s='${u.user_id}' class='primary'>Save</button>
       </div>
     </div>`).join('')||"<div class='row'>No users</div>";
+
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.s;
     const role=el.querySelector(`[data-r='${id}']`).value;
     const mg=el.querySelector(`[data-m='${id}']`).checked;
+    const active=el.querySelector(`[data-a='${id}']`).checked;
     const cid=el.querySelector(`[data-c='${id}']`).value||null;
-    await j('/api/admin/users',{method:'POST',body:JSON.stringify({user_id:Number(id),role,is_management:mg,company_id:cid})});
-    loadUsers();
+    if(role==='superadmin' && !confirm('Assigning superadmin is critical. Continue?')) return;
+    await j('/api/admin/users',{method:'POST',body:JSON.stringify({user_id:Number(id),role,is_management:mg,is_active:active,company_id:cid})});
+    toast('User updated');
+    await loadUsers();
   });
+  updateStats();
 }
+
 async function loadLocks(){
   const d=await j('/api/admin/locks?limit=200');
+  state.locks = d.locks||[];
   const el=document.getElementById('locks');
-  el.innerHTML=(d.locks||[]).map(l=>`<div class='row'><div><b>${esc(l.context)}</b><div class='muted'>${esc(l.project_name||l.project_id)} • ${esc(l.locked_by)}</div></div><div><button data-f='${esc(l.resource_key)}'>Force unlock</button></div></div>`).join('')||"<div class='row'>No active locks</div>";
-  el.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{await j('/api/locks/force_unlock',{method:'POST',body:JSON.stringify({resource_key:b.dataset.f})});loadLocks();});
+  el.innerHTML=state.locks.map(l=>`<div class='row'>
+    <div><b>${esc(l.context)}</b><div class='muted'>${esc(l.project_name||l.project_id)} • ${esc(l.locked_by)} • exp: ${esc((l.expires_at||'').replace('T',' ').slice(0,19))}</div></div>
+    <div><button data-f='${esc(l.resource_key)}' class='warn'>Force unlock</button></div>
+  </div>`).join('')||"<div class='row'>No active locks</div>";
+  el.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('Force unlock this record?')) return;
+    await j('/api/locks/force_unlock',{method:'POST',body:JSON.stringify({resource_key:b.dataset.f})});
+    toast('Lock force-unlocked');
+    await loadLocks();
+  });
+  updateStats();
 }
+
 async function loadAudit(){
   const a=document.getElementById('af').value||''; const e=document.getElementById('ef').value||'';
   const d=await j('/api/admin/audit_logs?limit=200&action='+encodeURIComponent(a)+'&entity_type='+encodeURIComponent(e));
+  const actorFilter=(document.getElementById('actorf').value||'').toLowerCase().trim();
+  state.logs = (d.logs||[]).filter(x=>!actorFilter || String(x.actor||'').toLowerCase().includes(actorFilter));
   const el=document.getElementById('audit');
-  el.innerHTML=(d.logs||[]).map(x=>`<div class='row'><div><b>${esc(x.action)}</b><div class='muted'>${esc(x.entity_type)} • ${esc(x.entity_id)} • ${esc(x.actor||'')}</div></div><div class='muted'>${esc((x.time||'').replace('T',' ').slice(0,19))}</div></div>`).join('')||"<div class='row'>No logs</div>";
+  el.innerHTML=state.logs.map(x=>`<div class='row'>
+    <div><b>${esc(x.action)}</b><div class='muted'>${esc(x.entity_type)} • ${esc(x.entity_id)} • actor: ${esc(x.actor||'')}</div></div>
+    <div class='muted'>${esc((x.time||'').replace('T',' ').slice(0,19))}</div>
+  </div>`).join('')||"<div class='row'>No logs</div>";
+  updateStats();
 }
 
-document.getElementById('cadd').onclick=async()=>{const n=document.getElementById('cname').value.trim(); if(!n) return; await j('/api/admin/companies',{method:'POST',body:JSON.stringify({name:n,vat_number:document.getElementById('cvat').value.trim(),registration_number:document.getElementById('creg').value.trim(),address_line1:document.getElementById('caddr').value.trim(),city:document.getElementById('ccity').value.trim(),postal_code:document.getElementById('czip').value.trim(),country:document.getElementById('ccountry').value.trim()})}); ['cname','cvat','creg','caddr','ccity','czip','ccountry'].forEach(id=>document.getElementById(id).value=''); loadCompanies(); loadUsers();};
+document.getElementById('cadd').onclick=async()=>{
+  const n=document.getElementById('cname').value.trim(); if(!n){toast('Company name is required', false); return;}
+  await j('/api/admin/companies',{method:'POST',body:JSON.stringify({id:state.editingCompanyId,name:n,vat_number:document.getElementById('cvat').value.trim(),registration_number:document.getElementById('creg').value.trim(),address_line1:document.getElementById('caddr').value.trim(),city:document.getElementById('ccity').value.trim(),postal_code:document.getElementById('czip').value.trim(),country:document.getElementById('ccountry').value.trim(),is_active:document.getElementById('cactive').checked})});
+  toast(state.editingCompanyId?'Company updated':'Company created');
+  resetCompanyForm();
+  await loadCompanies();
+  await loadUsers();
+};
+document.getElementById('ccancel').onclick=resetCompanyForm;
 document.getElementById('lrefresh').onclick=loadLocks;
 document.getElementById('arefresh').onclick=loadAudit;
-document.getElementById('ucreate').onclick=async()=>{const username=document.getElementById('uname').value.trim(); const password=document.getElementById('upass').value.trim(); if(!username||!password){alert('username+password required');return;} await j('/api/admin/users',{method:'POST',body:JSON.stringify({create_user:true,username,email:document.getElementById('uemail').value.trim(),password,role:document.getElementById('urole').value})}); ['uname','uemail','upass'].forEach(id=>document.getElementById(id).value=''); loadUsers();};
-Promise.all([loadCompanies(), loadUsers(), loadLocks(), loadAudit()]).catch(e=>alert('Admin load failed: '+e.message));
+document.getElementById('urefresh').onclick=loadUsers;
+document.getElementById('usearch').oninput=()=>loadUsers();
+document.getElementById('actorf').oninput=()=>loadAudit();
+document.getElementById('ucreate').onclick=async()=>{
+  const username=document.getElementById('uname').value.trim();
+  const password=document.getElementById('upass').value.trim();
+  if(!username||!password){toast('username + password required', false);return;}
+  await j('/api/admin/users',{method:'POST',body:JSON.stringify({create_user:true,username,email:document.getElementById('uemail').value.trim(),password,role:document.getElementById('urole').value})});
+  ['uname','uemail','upass'].forEach(id=>document.getElementById(id).value='');
+  toast('User created');
+  await loadUsers();
+};
+
+Promise.all([loadCompanies(), loadUsers(), loadLocks(), loadAudit()]).catch(e=>toast('Admin load failed: '+e.message,false));
 </script>
 </body>
 </html>
