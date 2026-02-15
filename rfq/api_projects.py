@@ -814,6 +814,45 @@ def admin_companies(request):
 
 
 @csrf_exempt
+def admin_locks(request):
+    actor, auth_err = require_auth_and_profile(request)
+    if auth_err:
+        return auth_err
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
+    if not require_role(actor, 'admin'):
+        return JsonResponse({'error': 'Admin permission required'}, status=403)
+
+    now = timezone.now()
+    q = EditLock.objects.select_related('locked_by', 'company', 'project').filter(expires_at__gt=now)
+    if not actor.get('is_superadmin'):
+        q = q.filter(company=actor.get('company'))
+
+    try:
+        limit = min(int(request.GET.get('limit', 200)), 500)
+    except Exception:
+        limit = 200
+
+    rows = []
+    for l in q.order_by('expires_at')[:limit]:
+        rows.append({
+            'resource_key': l.resource_key,
+            'context': l.context,
+            'project_id': l.project_id,
+            'project_name': l.project.name if l.project else '',
+            'company_id': l.company_id,
+            'company_name': l.company.name if l.company else '',
+            'locked_by': l.locked_by_display or (getattr(l.locked_by, 'username', '') if l.locked_by_id else ''),
+            'locked_by_id': l.locked_by_id,
+            'expires_at': l.expires_at.isoformat() if l.expires_at else '',
+        })
+
+    return JsonResponse({'locks': rows})
+
+
+@csrf_exempt
 def admin_audit_logs(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:

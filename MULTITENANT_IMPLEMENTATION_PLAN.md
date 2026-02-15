@@ -17,7 +17,9 @@ Scope owner: RFQ app (Django + JS)
 - ✅ Lock UI integration implemented (item-detail + key edit views)
 - ✅ Admin API + basic admin UI panels implemented (users/companies/audit logs)
 - ✅ Broader audit coverage started (locks, ACL updates, quote mutations, supplier decisions)
-- 🔄 Next: finalize admin UX polish + enforce ACL checks in remaining edge endpoints + completion review
+- ✅ Admin UX improved (role/company/mgmt + audit + lock monitor)
+- ✅ Additional ACL edge hardening for quote project bindings/import paths
+- 🔄 Next: final completion checklist + optional non-null company enforcement migration (hardening phase)
 
 ---
 

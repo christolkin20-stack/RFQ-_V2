@@ -1202,13 +1202,22 @@ window.SystemApps.rfq = {
                                             </div>
                                         </div>
                                         <div style="margin-top:10px;">
-                                            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Audit Logs</div>
-                                            <div style="display:flex; gap:8px; margin-bottom:6px;">
-                                                <input id="settings-admin-audit-action" class="rfq-input" placeholder="Filter action" style="max-width:180px;" />
-                                                <input id="settings-admin-audit-entity" class="rfq-input" placeholder="Filter entity" style="max-width:180px;" />
-                                                <button id="btn-settings-admin-audit-refresh" class="btn-secondary" type="button">Refresh</button>
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                <div>
+                                                    <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Audit Logs</div>
+                                                    <div style="display:flex; gap:8px; margin-bottom:6px;">
+                                                        <input id="settings-admin-audit-action" class="rfq-input" placeholder="Filter action" style="max-width:180px;" />
+                                                        <input id="settings-admin-audit-entity" class="rfq-input" placeholder="Filter entity" style="max-width:180px;" />
+                                                        <button id="btn-settings-admin-audit-refresh" class="btn-secondary" type="button">Refresh</button>
+                                                    </div>
+                                                    <div id="settings-admin-audit" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; background:#fff;"></div>
+                                                </div>
+                                                <div>
+                                                    <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Active Locks</div>
+                                                    <button id="btn-settings-admin-locks-refresh" class="btn-secondary" type="button" style="margin-bottom:6px;">Refresh Locks</button>
+                                                    <div id="settings-admin-locks" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; background:#fff;"></div>
+                                                </div>
                                             </div>
-                                            <div id="settings-admin-audit" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; background:#fff;"></div>
                                         </div>
                                         <div id="settings-admin-note" style="margin-top:8px; font-size:11px; color:#64748b;"></div>
                                     </div>
@@ -20156,6 +20165,49 @@ Best regards`)}</textarea>
             const auditEntity = getEl('settings-admin-audit-entity');
             const auditBtn = getEl('btn-settings-admin-audit-refresh');
 
+            const lockWrap = getEl('settings-admin-locks');
+            const lockBtn = getEl('btn-settings-admin-locks-refresh');
+
+            const loadLocks = async () => {
+                if (!lockWrap) return;
+                lockWrap.innerHTML = '<div style="padding:10px; font-size:11px; color:#64748b;">Loading...</div>';
+                try {
+                    const lr = await _settingsFetchJson('/api/admin/locks?limit=200');
+                    const locks = Array.isArray(lr?.locks) ? lr.locks : [];
+                    lockWrap.innerHTML = locks.length ? locks.map(l => `
+                        <div style="padding:7px 10px; border-bottom:1px solid #f1f5f9; font-size:11px;">
+                            <div style="display:flex; justify-content:space-between; gap:8px;">
+                                <div style="font-weight:600; color:#0f172a;">${escapeHtml(l.context || 'lock')}</div>
+                                <div style="color:#64748b;">${escapeHtml((l.expires_at || '').replace('T',' ').slice(0,19))}</div>
+                            </div>
+                            <div style="color:#475569;">${escapeHtml(l.project_name || l.project_id || '')} • ${escapeHtml(l.locked_by || '')}</div>
+                            <div style="margin-top:4px;"><button class="btn-secondary" data-admin-force-unlock="${escapeAttr(l.resource_key || '')}" style="font-size:10px; padding:2px 6px;">Force unlock</button></div>
+                        </div>
+                    `).join('') : '<div style="padding:10px; font-size:11px; color:#64748b;">No active locks.</div>';
+
+                    lockWrap.querySelectorAll('[data-admin-force-unlock]').forEach(b => {
+                        b.onclick = async () => {
+                            const key = b.getAttribute('data-admin-force-unlock');
+                            if (!key) return;
+                            try {
+                                await _settingsFetchJson('/api/locks/force_unlock', { method: 'POST', body: { resource_key: key } });
+                                showToast('Lock unlocked', 'success');
+                                loadLocks();
+                            } catch (e) {
+                                showToast(`Unlock failed: ${e.message}`, 'error');
+                            }
+                        };
+                    });
+                } catch (e) {
+                    lockWrap.innerHTML = '<div style="padding:10px; font-size:11px; color:#b91c1c;">Locks unavailable.</div>';
+                }
+            };
+
+            if (lockBtn && !lockBtn.dataset.bound) {
+                lockBtn.dataset.bound = '1';
+                lockBtn.onclick = loadLocks;
+            }
+
             const loadAudit = async () => {
                 if (!auditWrap) return;
                 auditWrap.innerHTML = '<div style="padding:10px; font-size:11px; color:#64748b;">Loading...</div>';
@@ -20186,6 +20238,7 @@ Best regards`)}</textarea>
                 auditBtn.onclick = loadAudit;
             }
             loadAudit();
+            loadLocks();
         }
 
         function renderSettings() {
