@@ -2,7 +2,7 @@ import copy
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import SupplierAccess
+from .models import SupplierAccess, UserCompanyProfile
 
 
 def app(request, bundle_id=None):
@@ -16,8 +16,16 @@ def app(request, bundle_id=None):
 def mega_admin_dashboard(request):
     if not request.user.is_authenticated:
         return redirect(f"/login/?next={request.path}")
-    if not request.user.is_superuser:
+
+    is_profile_superadmin = UserCompanyProfile.objects.filter(
+        user=request.user,
+        is_active=True,
+        role='superadmin',
+    ).exists()
+
+    if not (request.user.is_superuser or is_profile_superadmin):
         return HttpResponseForbidden('Superadmin only')
+
     return render(request, 'rfq/mega_admin.html', {})
 
 
