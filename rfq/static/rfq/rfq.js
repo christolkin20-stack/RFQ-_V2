@@ -2,7 +2,6 @@
  * RFQ System Application
  */
 window.SystemApps = window.SystemApps || {};
-window.__RFQ_BUILD_VERSION__ = 'v76_2'; // FINAL SUMMARY - Challenge selected items, selection indicator
 
 window.SystemApps.rfq = {
     title: 'RFQ System',
@@ -40934,7 +40933,6 @@ window.RFQStandalone.mount = function (rootSelectorOrEl) {
 
 /* ===================== v58 Deep Wizard Stability Patch (plus DATA Manager) ===================== */
 (function () {
-    try { window.__RFQ_BUILD_VERSION__ = 'v64_4'; } catch (e) { }
     // Guard: only patch once
     if (window.__RFQ_V58_WIZ_PATCH__) return;
     window.__RFQ_V58_WIZ_PATCH__ = true;
