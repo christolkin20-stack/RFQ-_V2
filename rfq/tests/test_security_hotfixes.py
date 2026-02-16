@@ -23,6 +23,9 @@ class SecurityHotfixTests(TestCase):
         self.project_a = Project.objects.create(id='proj-a', company=self.company_a, name='A', data={'id': 'proj-a', 'name': 'A', 'items': []})
         self.project_b = Project.objects.create(id='proj-b', company=self.company_b, name='B', data={'id': 'proj-b', 'name': 'B', 'items': []})
 
+        self.superadmin = User.objects.create_user(username='super', password='pw12345')
+        UserCompanyProfile.objects.create(user=self.superadmin, company=None, role='superadmin', is_active=True)
+
     def _origin(self):
         return {'HTTP_ORIGIN': 'http://testserver'}
 
@@ -83,3 +86,47 @@ class SecurityHotfixTests(TestCase):
         self.assertEqual(r.status_code, 200)
         access_b.refresh_from_db()
         self.assertTrue((access_b.submission_data or {}).get('reopen_requested'))
+
+    def test_superadmin_bulk_sync_requires_scope_then_respects_company_scope(self):
+        self.client.login(username='super', password='pw12345')
+
+        payload_a = {
+            'projects': [
+                {'id': 'proj-a', 'name': 'A Updated', 'items': []},
+            ]
+        }
+
+        # All-scope superadmin cannot write until explicit company is selected.
+        r = self.client.post('/api/projects/bulk', data=json.dumps(payload_a), content_type='application/json', **self._origin())
+        self.assertEqual(r.status_code, 400)
+
+        # Select company A scope and retry -> allowed.
+        r_scope = self.client.post(
+            '/api/session/switch_company',
+            data=json.dumps({'company_id': self.company_a.id}),
+            content_type='application/json',
+            **self._origin(),
+        )
+        self.assertEqual(r_scope.status_code, 200)
+
+        r2 = self.client.post('/api/projects/bulk', data=json.dumps(payload_a), content_type='application/json', **self._origin())
+        self.assertEqual(r2.status_code, 200)
+
+        self.project_a.refresh_from_db()
+        self.project_b.refresh_from_db()
+        self.assertEqual(self.project_a.name, 'A Updated')
+        self.assertEqual(self.project_b.name, 'B')
+
+        # Scoped write must not update project from different company.
+        payload_cross = {
+            'projects': [
+                {'id': 'proj-b', 'name': 'B Hacked', 'items': []},
+            ]
+        }
+        r3 = self.client.post('/api/projects/bulk', data=json.dumps(payload_cross), content_type='application/json', **self._origin())
+        self.assertEqual(r3.status_code, 200)
+        self.assertEqual(r3.json().get('upserted'), 0)
+        self.assertGreaterEqual(r3.json().get('skipped', 0), 1)
+
+        self.project_b.refresh_from_db()
+        self.assertEqual(self.project_b.name, 'B')

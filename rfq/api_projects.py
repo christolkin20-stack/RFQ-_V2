@@ -377,6 +377,11 @@ def projects_bulk(request):
             # Resolve globally first (important for superadmin scoped mode)
             obj = Project.objects.select_for_update().filter(id=pid).first()
             if obj:
+                # Superadmin writes are always pinned to explicit scope company.
+                # Never allow scoped sync to mutate a project from a different company.
+                if actor.get('is_superadmin') and write_company and obj.company_id != write_company.id:
+                    skipped += 1
+                    continue
                 if not can_edit_project(actor, obj):
                     skipped += 1
                     continue

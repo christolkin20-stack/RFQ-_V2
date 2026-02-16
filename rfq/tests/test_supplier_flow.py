@@ -1,7 +1,7 @@
 import json
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
-from rfq.models import Project, SupplierAccess, Quote
+from rfq.models import Company, Project, SupplierAccess, Quote, UserCompanyProfile
 
 
 def _sample_project_data():
@@ -371,7 +371,12 @@ class SupplierPortalFlowTests(TestCase):
         self.assertEqual(float(s_new.get('price_1')), 9.9)
 
     def test_projects_bulk_does_not_clobber_existing_supplier_quotes(self):
-        project = Project.objects.create(id='proj5', name='Proj 5', data={
+        company = Company.objects.create(name='ACME CZ')
+        user = get_user_model().objects.create_user(username='editor-bulk', password='x')
+        UserCompanyProfile.objects.create(user=user, company=company, role='editor', is_active=True)
+        self.client.force_login(user)
+
+        project = Project.objects.create(id='proj5', name='Proj 5', company=company, data={
             'items': [{
                 'id': 'itm5',
                 'item_drawing_no': 'DRW-500',
