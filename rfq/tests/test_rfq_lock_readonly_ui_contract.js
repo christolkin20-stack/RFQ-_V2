@@ -10,6 +10,9 @@ function run() {
   assert(code.includes('Read-only mode (lock active)'), 'Overlay must show explicit read-only message');
   assert(code.includes('btn-item-detail-save') && code.includes("b.style.display = 'none'"), 'Save buttons must be hidden in read-only mode');
   assert(code.includes('getProjectLockStatus'), 'UI must query lock status');
+  assert(code.includes('beginItemDetailLockSession') && code.includes('ensureProjectLock'), 'UI must acquire lock on item-detail entry');
+  assert(code.includes("previousView === 'item-detail' && view !== 'item-detail'") && code.includes('releaseItemDetailLockBestEffort'), 'Leaving item detail must release lock immediately');
+  assert(code.includes('beforeunload') && code.includes('releaseItemDetailLockBestEffort'), 'beforeunload must trigger best-effort lock release');
   assert(code.includes('refreshItemDetailLockState') && code.includes('ensureItemDetailLockWatcher'), 'UI must refresh lock state automatically');
 
   console.log('PASS test_rfq_lock_readonly_ui_contract');

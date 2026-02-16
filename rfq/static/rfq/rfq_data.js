@@ -175,7 +175,13 @@ const nowIso = () => new Date().toISOString();
             method: 'POST',
             body: JSON.stringify({ resource_key, ttl_sec: LOCK.TTL_SEC }),
           });
-        } catch (e) {}
+        } catch (e) {
+          const active = _projectLockTimers.get(resource_key);
+          if (active) {
+            clearInterval(active);
+            _projectLockTimers.delete(resource_key);
+          }
+        }
       }, Math.max(30000, (LOCK.TTL_SEC * 1000) / 2));
       _projectLockTimers.set(resource_key, id);
     }
@@ -185,6 +191,25 @@ const nowIso = () => new Date().toISOString();
   const ensureProjectLock = async (projectId) => {
     try {
       return await _ensureProjectLock(projectId);
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const releaseProjectLock = async (projectId) => {
+    if (!projectId) return false;
+    const resource_key = _lockResourceKey(projectId);
+    try {
+      await _fetchJson(LOCK.RELEASE, {
+        method: 'POST',
+        body: JSON.stringify({ resource_key }),
+      });
+      const t = _projectLockTimers.get(resource_key);
+      if (t) {
+        clearInterval(t);
+        _projectLockTimers.delete(resource_key);
+      }
+      return true;
     } catch (e) {
       return false;
     }
@@ -234,28 +259,14 @@ const nowIso = () => new Date().toISOString();
     const projects = allProjects.filter(p => _dirtyProjectIds.has(String(p && p.id)));
     if (!projects.length) return { projects: [], blocked: [] };
 
-    const lockResults = await Promise.all(projects.map(async (p) => {
-      try {
-        const ok = await _ensureProjectLock(p?.id);
-        return { p, ok };
-      } catch (e) {
-        return { p, ok: false };
-      }
-    }));
-
-    const writable = lockResults.filter(x => x.ok).map(x => _withBaseVersion(x.p));
-    const blocked = lockResults.filter(x => !x.ok).map(x => x.p?.id).filter(Boolean);
-    if (blocked.length) {
-      try {
-        window.dispatchEvent(new CustomEvent('rfq:project-lock-required', { detail: { blockedProjectIds: blocked } }));
-      } catch (e) {}
-    }
-    return { projects: writable, blocked };
+    // Do NOT acquire locks in background sync.
+    // Lock is now a foreground (detail-edit) concern to avoid stale lock ownership across tabs.
+    return { projects: projects.map(_withBaseVersion), blocked: [] };
   };
 
   const _syncNowCore = async () => {
     const payload = await _syncPayload();
-    if (!payload.projects.length) return { ok: true, skipped: true, reason: 'lock_required' };
+    if (!payload.projects.length) return { ok: true, skipped: true, reason: 'no_dirty_projects' };
     try {
       const res = await _fetchJson(API.BULK, { method: 'POST', body: JSON.stringify({ projects: payload.projects }) });
       payload.projects.forEach(p => { if (p && p.id) _dirtyProjectIds.delete(String(p.id)); });
@@ -730,6 +741,7 @@ const nowIso = () => new Date().toISOString();
     syncNowAsync,
     queueSync,
     ensureProjectLock,
+    releaseProjectLock,
     getProjectLockStatus,
     resetServer: function(){ return _fetchJson(API.RESET, { method: 'POST', body: '{}' }); },
     bootstrapFromServer,

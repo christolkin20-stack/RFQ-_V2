@@ -9920,7 +9920,17 @@ window.SystemApps.rfq = {
         }
 
         function switchView(view) {
+            const previousView = currentView;
             currentView = view;
+
+            // Leaving item detail via navigation should release lock immediately.
+            if (previousView === 'item-detail' && view !== 'item-detail') {
+                try {
+                    __itemDetailLockSessionToken += 1;
+                    releaseItemDetailLockBestEffort();
+                } catch (e) { }
+                try { setItemDetailReadOnlyMode(false, null); } catch (e) { }
+            }
 
             // Close any open dropdowns
             closeAllNavDropdowns();
@@ -22365,6 +22375,11 @@ Best regards`)}</textarea>
             if (typeof switchView === 'function') switchView('item-detail');
             if (detailWindow) detailWindow.classList.add('hidden');
 
+            try {
+                const pid = currentProject && currentProject.id ? String(currentProject.id) : '';
+                if (pid) beginItemDetailLockSession(pid);
+            } catch (e) { }
+
             const item = currentProject.items[index];
 
             const pageTitleEl = getEl('item-detail-page-title');
@@ -24223,7 +24238,11 @@ Best regards`)}</textarea>
 
         let __itemDetailReadOnly = false;
         let __itemDetailLockTimer = null;
+        let __itemDetailLockHooksBound = false;
         let __itemDetailReadOnlyAckSig = '';
+        let __itemDetailLockOwner = false;
+        let __itemDetailLockProjectId = null;
+        let __itemDetailLockSessionToken = 0;
 
         function _fmtLockExpiry(iso) {
             try {
@@ -24269,8 +24288,12 @@ Best regards`)}</textarea>
                 const btnOk = getEl('btn-item-detail-readonly-ok');
                 if (btnOk) btnOk.addEventListener('click', () => _closeItemDetailReadonlyPrompt());
                 const btnBackItems = getEl('btn-item-detail-readonly-back-items');
-                if (btnBackItems) btnBackItems.addEventListener('click', () => {
+                if (btnBackItems) btnBackItems.addEventListener('click', async () => {
                     _closeItemDetailReadonlyPrompt();
+                    try {
+                        __itemDetailLockSessionToken += 1;
+                        await releaseItemDetailLockBestEffort();
+                    } catch (e) { }
                     currentDetailIndex = null;
                     if (typeof switchView === 'function') switchView('items');
                     try { if (typeof renderItemsTable === 'function') renderItemsTable(); } catch (e) { }
@@ -24352,6 +24375,64 @@ Best regards`)}</textarea>
             ov.style.display = enabled ? 'block' : 'none';
         }
 
+        async function releaseItemDetailLockBestEffort() {
+            const projectId = __itemDetailLockProjectId || (currentProject && currentProject.id ? currentProject.id : null);
+            __itemDetailLockOwner = false;
+            __itemDetailLockProjectId = null;
+            if (!projectId) return;
+            try {
+                if (window.RFQData && typeof window.RFQData.releaseProjectLock === 'function') {
+                    await window.RFQData.releaseProjectLock(projectId);
+                }
+            } catch (e) { }
+        }
+
+        async function beginItemDetailLockSession(projectId) {
+            const pid = projectId ? String(projectId) : '';
+            if (!pid) return;
+
+            __itemDetailLockSessionToken += 1;
+            const token = __itemDetailLockSessionToken;
+            __itemDetailLockOwner = false;
+            __itemDetailLockProjectId = null;
+
+            // Keep UI deterministic: block editing until lock ownership is resolved.
+            setItemDetailReadOnlyMode(true, { owner: { display: 'Resolving lock...' }, expires_at: null });
+
+            let acquired = false;
+            try {
+                if (window.RFQData && typeof window.RFQData.ensureProjectLock === 'function') {
+                    acquired = !!(await window.RFQData.ensureProjectLock(pid));
+                } else {
+                    acquired = true;
+                }
+            } catch (e) {
+                acquired = false;
+            }
+
+            if (token !== __itemDetailLockSessionToken) return;
+
+            if (acquired) {
+                __itemDetailLockOwner = true;
+                __itemDetailLockProjectId = pid;
+                setItemDetailReadOnlyMode(false, null);
+                try { await refreshItemDetailLockState(); } catch (e) { }
+                return;
+            }
+
+            __itemDetailLockOwner = false;
+            __itemDetailLockProjectId = null;
+            let st = null;
+            try {
+                if (window.RFQData && typeof window.RFQData.getProjectLockStatus === 'function') {
+                    st = await window.RFQData.getProjectLockStatus(pid);
+                }
+            } catch (e) { }
+            if (token !== __itemDetailLockSessionToken) return;
+            setItemDetailReadOnlyMode(true, st || { locked: true, is_owner: false, owner: { display: 'Another user' }, expires_at: null });
+            _showItemDetailReadonlyPrompt(st || { locked: true, is_owner: false, owner: { display: 'Another user' }, expires_at: null });
+        }
+
         async function refreshItemDetailLockState() {
             try {
                 if (currentView !== 'item-detail' || !currentProject || !currentProject.id) {
@@ -24361,6 +24442,9 @@ Best regards`)}</textarea>
                 if (!window.RFQData || typeof window.RFQData.getProjectLockStatus !== 'function') return;
                 const st = await window.RFQData.getProjectLockStatus(currentProject.id);
                 const foreign = !!(st && st.locked && !st.is_owner);
+                const owned = !!(st && st.locked && st.is_owner);
+                __itemDetailLockOwner = owned;
+                __itemDetailLockProjectId = owned ? String(currentProject.id) : null;
                 setItemDetailReadOnlyMode(foreign, st);
                 if (foreign) {
                     const sig = _getLockSignature(st);
@@ -24375,10 +24459,29 @@ Best regards`)}</textarea>
         }
 
         function ensureItemDetailLockWatcher() {
-            if (__itemDetailLockTimer) return;
-            __itemDetailLockTimer = setInterval(() => {
-                refreshItemDetailLockState().catch(() => { });
-            }, 8000);
+            if (!__itemDetailLockTimer) {
+                __itemDetailLockTimer = setInterval(() => {
+                    refreshItemDetailLockState().catch(() => { });
+                }, 2000);
+            }
+
+            if (!__itemDetailLockHooksBound) {
+                __itemDetailLockHooksBound = true;
+                window.addEventListener('focus', () => {
+                    refreshItemDetailLockState().catch(() => { });
+                });
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        refreshItemDetailLockState().catch(() => { });
+                    }
+                });
+                window.addEventListener('beforeunload', () => {
+                    try {
+                        __itemDetailLockSessionToken += 1;
+                        releaseItemDetailLockBestEffort();
+                    } catch (e) { }
+                });
+            }
         }
 
         async function saveDetailChanges(shouldClose = true) {
@@ -24390,10 +24493,9 @@ Best regards`)}</textarea>
                 return false;
             }
 
-            if (window.RFQData && typeof window.RFQData.ensureProjectLock === 'function') {
-                const hasLock = await window.RFQData.ensureProjectLock(currentProject && currentProject.id);
-                if (!hasLock) {
-                    try { refreshItemDetailLockState(); } catch (e) { }
+            if (!__itemDetailLockOwner || !__itemDetailLockProjectId || String(__itemDetailLockProjectId) !== String(currentProject && currentProject.id)) {
+                try { await refreshItemDetailLockState(); } catch (e) { }
+                if (!__itemDetailLockOwner || __itemDetailReadOnly) {
                     return false;
                 }
             }
@@ -24448,12 +24550,16 @@ Best regards`)}</textarea>
             return true;
         }
 
-        function closeDetailWindow() {
+        async function closeDetailWindow() {
             // Hide legacy overlay if present
             if (detailWindow) detailWindow.classList.add('hidden');
 
             const isDetailVisible = (viewItemDetail && !viewItemDetail.classList.contains('hidden'));
             const wasDetailView = (currentView === 'item-detail') || isDetailVisible;
+
+            __itemDetailLockSessionToken += 1;
+            await releaseItemDetailLockBestEffort();
+            setItemDetailReadOnlyMode(false, null);
 
             currentDetailIndex = null;
 
