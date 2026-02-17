@@ -27,6 +27,101 @@
       if (window.RFQStandalone && typeof window.RFQStandalone.mount === 'function') {
         window.RFQStandalone.mount('#rfq-root');
       }
+
+      const ensureAuthChip = () => {
+        const topbar = document.querySelector('.rfq-topbar');
+        if (!topbar) return null;
+        let chip = document.getElementById('rfq-auth-chip');
+        if (!chip) {
+          chip = document.createElement('div');
+          chip.id = 'rfq-auth-chip';
+          chip.style.cssText = 'margin-left:10px;font-size:12px;color:rgba(255,255,255,.92);display:flex;gap:8px;align-items:center;';
+          {% if request.user.is_authenticated %}
+            chip.innerHTML = ''
+              + '<span id="rfq-auth-user">{{ request.user.username|escapejs }}</span>'
+              + '<span style="opacity:.6">•</span>'
+              + '<span id="rfq-auth-company" style="opacity:.9"></span>'
+              + '<select id="rfq-auth-scope" style="display:none; margin-left:2px; margin-right:2px; font-size:12px; background:#0b1224; color:#e2e8f0; border:1px solid #334155; border-radius:6px; padding:3px 6px;"></select>'
+              + '<a id="rfq-auth-mega" href="/mega-admin/" style="display:none; color:#bfdbfe; text-decoration:none;">Mega Admin</a>'
+              + '<a href="/logout/?next=/login/" style="color:#fecaca;text-decoration:none;">Logout</a>';
+          {% else %}
+            chip.innerHTML = '<a href="/login/" style="color:#bfdbfe;text-decoration:none;">Login</a>';
+          {% endif %}
+          topbar.appendChild(chip);
+        } else if (chip.parentElement !== topbar) {
+          topbar.appendChild(chip);
+        }
+        return chip;
+      };
+
+      const refreshAuthChip = async () => {
+        const chip = ensureAuthChip();
+        if (!chip) return false;
+        try {
+          const r = await fetch('/api/session/me', { credentials: 'same-origin' });
+          if (!r.ok) return true;
+          const data = await r.json();
+          const userEl = chip.querySelector('#rfq-auth-user');
+          const compEl = chip.querySelector('#rfq-auth-company');
+          const megaEl = chip.querySelector('#rfq-auth-mega');
+          const scopeEl = chip.querySelector('#rfq-auth-scope');
+
+          if (userEl) userEl.textContent = `${data.username || '{{ request.user.username|escapejs }}'} (${data.role || '-'})`;
+          if (compEl) compEl.textContent = data.scope_company_name || data.company_name || '';
+          if (megaEl) megaEl.style.display = (data.role === 'superadmin' || data.is_superuser) ? '' : 'none';
+
+          if (scopeEl) {
+            const isSuper = (data.role === 'superadmin' || data.is_superuser);
+            if (isSuper && Array.isArray(data.companies) && data.companies.length) {
+              scopeEl.style.display = '';
+              scopeEl.innerHTML = '';
+              const allOpt = document.createElement('option');
+              allOpt.value = 'all';
+              allOpt.textContent = 'All companies';
+              scopeEl.appendChild(allOpt);
+              data.companies.forEach((c) => {
+                const opt = document.createElement('option');
+                opt.value = String(c.id);
+                opt.textContent = c.name;
+                scopeEl.appendChild(opt);
+              });
+              scopeEl.value = String(data.scope_company_id || 'all');
+              if (!scopeEl.dataset.bound) {
+                scopeEl.dataset.bound = '1';
+                scopeEl.addEventListener('change', async () => {
+                  scopeEl.disabled = true;
+                  try {
+                    const res = await fetch('/api/session/switch_company', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'same-origin',
+                      body: JSON.stringify({ company_id: scopeEl.value })
+                    });
+                    if (!res.ok) throw new Error('switch_company failed');
+                    location.reload();
+                  } catch (e) {
+                    scopeEl.disabled = false;
+                  }
+                });
+              }
+            } else {
+              scopeEl.style.display = 'none';
+              scopeEl.innerHTML = '';
+            }
+          }
+        } catch (e) {}
+        return true;
+      };
+
+      let tries = 0;
+      const t = setInterval(async () => {
+        tries += 1;
+        const ok = await refreshAuthChip();
+        if (ok || tries > 80) clearInterval(t);
+      }, 100);
+
+      const mo = new MutationObserver(() => { ensureAuthChip(); });
+      mo.observe(document.body, { childList: true, subtree: true });
     });
   </script>
 </body>

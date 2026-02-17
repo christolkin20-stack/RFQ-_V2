@@ -34,7 +34,6 @@ window.SystemApps.rfq = {
                     <button id="nav-database" class="nav-dropdown-item" type="button">Database</button>
                     <button id="nav-quotes" class="nav-dropdown-item" type="button">💰 Quotes</button>
                     <button id="nav-doc-manager" class="nav-dropdown-item" type="button">📂 Document Manager</button>
-                    <button id="nav-ai-chat" class="nav-dropdown-item" type="button">🤖 AI Assistant</button>
                 </div>
             </div>
 
@@ -376,7 +375,7 @@ window.SystemApps.rfq = {
         </div>
     </div>
 </div>
-<div id="view-ai-chat" class="view-section hidden"></div>
+<!-- AI Assistant removed -->
 
 <div id="view-project-detail" class="view-section hidden" style="overflow:hidden;">
   <div style="display:flex; flex-direction:column; height:100%; min-height:0; padding:20px;">
@@ -41819,58 +41818,7 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// ===================================
-// AI Chat Bot Integration
-// ===================================
-document.addEventListener('click', function (e) {
-    if (e.target && (e.target.id === 'nav-ai-chat' || e.target.closest('#nav-ai-chat'))) {
-        // Reset project when going to GLOBAL view
-        currentProject = null;
-        window.currentProject = null;
-        localStorage.removeItem('rfq_active_project_id');
-        if (typeof setProjectNameUI === 'function') setProjectNameUI(null);
-        const ptg = document.querySelector('.project-tabs-group');
-        if (ptg) ptg.classList.remove('has-project');
-
-        // Switch View
-        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-        const view = document.getElementById('view-ai-chat');
-        if (view) view.classList.remove('hidden');
-
-        // Update Sidebar Active State
-        document.querySelectorAll('.nav-dropdown-item').forEach(el => el.classList.remove('active'));
-        const btn = document.getElementById('nav-ai-chat');
-        if (btn) btn.classList.add('active');
-
-        // Dynamic Script Loading
-        if (!window.RFQChat) {
-            if (window.showToast) window.showToast('Loading AI module...', 'info');
-            const script = document.createElement('script');
-            // Assuming the standard static path structure
-            script.src = '/static/rfq/rfq_chat.js?v=' + new Date().getTime();
-            script.onload = () => {
-                if (window.RFQChat) window.RFQChat.init();
-                if (window.showToast) window.showToast('AI Ready', 'success');
-            };
-            script.onerror = () => {
-                if (window.showToast) window.showToast('Failed to load AI module', 'error');
-                if (view) view.innerHTML = '<div style="padding:20px; color:red;">Error loading AI Chat module. Check console for path errors.</div>';
-            };
-            document.body.appendChild(script);
-        } else {
-            window.RFQChat.renderInterface();
-        }
-    }
-
-    // Auto-hide when leaving
-    const navItem = e.target.closest('.nav-item, .nav-dropdown-item, .tab, .nav-dropdown-btn');
-    if (navItem && navItem.id !== 'nav-ai-chat') {
-        const view = document.getElementById('view-ai-chat');
-        if (view) view.classList.add('hidden');
-        const btn = document.getElementById('nav-ai-chat');
-        if (btn) btn.classList.remove('active');
-    }
-});
+// AI Assistant removed from navigation and handlers.
 
 // =========================================================
 // SUPPLIER INTERACTION MODULE

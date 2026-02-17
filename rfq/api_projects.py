@@ -493,9 +493,13 @@ def projects_bulk(request):
             if lock:
                 return _lock_conflict_response(obj, lock)
 
-            conflict = _ensure_matching_base_version(obj, proj)
-            if conflict:
-                return conflict
+            # Bulk sync should remain resilient in normal edit flow: enforce optimistic
+            # version checks only when client explicitly provides base_version fields.
+            # This avoids false 409 spikes from legacy payloads that omit version.
+            if _extract_base_version(proj):
+                conflict = _ensure_matching_base_version(obj, proj)
+                if conflict:
+                    return conflict
 
             obj.name = name
             obj.data = _merge_preserve_supplier_quotes(obj.data or {}, proj)
@@ -843,11 +847,14 @@ def locks_status(request):
         return JsonResponse({'error': 'resource_key required'}, status=400)
 
     now = timezone.now()
-    lock = EditLock.objects.filter(resource_key=resource_key).first()
-    if not lock or lock.expires_at <= now:
+    # Deterministic active lock lookup avoids stale/expired rows causing false unlocks
+    # or ghost owner values when multiple rows exist for the same resource key.
+    lock = EditLock.objects.filter(resource_key=resource_key, expires_at__gt=now).order_by('-expires_at', '-updated_at').first()
+    if not lock:
         return JsonResponse({'ok': True, 'locked': False, 'resource_key': resource_key})
 
     actor_user_id = getattr(actor.get('user'), 'id', None)
+    owner_display = (lock.locked_by_display or '').strip() or (getattr(lock.locked_by, 'username', '') if lock.locked_by_id else '')
     return JsonResponse({
         'ok': True,
         'locked': True,
@@ -855,7 +862,7 @@ def locks_status(request):
         'is_owner': bool(actor_user_id and lock.locked_by_id == actor_user_id),
         'owner': {
             'user_id': lock.locked_by_id,
-            'display': lock.locked_by_display,
+            'display': owner_display,
         },
         'expires_at': lock.expires_at.isoformat(),
         'context': lock.context or '',
