@@ -61,6 +61,7 @@ async function run() {
   const context = {
     window,
     localStorage,
+    document: { cookie: '' },
     fetch,
     console,
     setTimeout,
