@@ -4,7 +4,7 @@ import os
 import uuid
 from decimal import Decimal, InvalidOperation
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+
 from django.db import transaction
 
 from .models import Project, Attachment, SupplierAccess, SupplierAccessRound, SupplierInteractionFile, Quote, QuoteLine
@@ -30,7 +30,7 @@ def health(request):
     return JsonResponse({'ok': True})
 
 
-@csrf_exempt
+
 def projects_collection(request):
     auth_err = _require_buyer_auth(request)
     if auth_err:
@@ -62,7 +62,7 @@ def projects_collection(request):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def project_detail(request, project_id: str):
     auth_err = _require_buyer_auth(request)
     if auth_err:
@@ -101,7 +101,7 @@ def project_detail(request, project_id: str):
     return HttpResponseNotAllowed(['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
-@csrf_exempt
+
 def projects_bulk(request):
     auth_err = _require_buyer_auth(request)
     if auth_err:
@@ -153,7 +153,7 @@ def projects_bulk(request):
     return JsonResponse({'ok': True, 'upserted': upserted, 'deleted': deleted})
 
 
-@csrf_exempt
+
 def projects_reset(request):
     auth_err = _require_buyer_auth(request)
     if auth_err:
@@ -169,7 +169,7 @@ def projects_reset(request):
     return JsonResponse({'ok': True})
 
 
-@csrf_exempt
+
 def project_attachments(request, project_id: str):
     """List / upload attachments for a project."""
     auth_err = _require_buyer_auth(request)
@@ -201,7 +201,7 @@ def project_attachments(request, project_id: str):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def project_attachment_detail(request, project_id: str, attachment_id: str):
     """Delete a single attachment."""
     auth_err = _require_buyer_auth(request)
@@ -230,7 +230,7 @@ def project_attachment_detail(request, project_id: str, attachment_id: str):
     return HttpResponseNotAllowed(['DELETE'])
 
 
-@csrf_exempt
+
 def export_data(request):
     auth_err = _require_buyer_auth(request)
     if auth_err:

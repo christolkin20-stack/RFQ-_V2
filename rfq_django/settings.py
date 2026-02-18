@@ -3,9 +3,18 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-only-change-me')
+_secret = os.environ.get('DJANGO_SECRET_KEY', '')
+# Secure-by-default: fail loudly in production if SECRET_KEY is not set
+# DEBUG is resolved below; we re-check after DEBUG is defined.
+SECRET_KEY = _secret or 'dev-only-insecure-key'
 # Secure-by-default: production unless explicitly enabled
 DEBUG = os.environ.get('DJANGO_DEBUG', '0') == '1'
+
+if not _secret and not DEBUG:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        'DJANGO_SECRET_KEY environment variable is required when DEBUG=False'
+    )
 
 raw_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').strip()
 ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(',') if h.strip()]
@@ -54,6 +63,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rfq_django.wsgi.application'
 
+# WARNING: SQLite is for development only. For production use PostgreSQL.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -61,7 +71,12 @@ DATABASES = {
     }
 }
 
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 
 LANGUAGE_CODE = 'cs'
 TIME_ZONE = 'Europe/Prague'

@@ -6,6 +6,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .api_common import (
@@ -144,7 +145,7 @@ def _extract_items_for_supplier(project_data, supplier_name):
     return extracted
 
 
-@csrf_exempt
+
 def supplier_access_generate(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -206,7 +207,7 @@ def supplier_access_generate(request):
     return JsonResponse({'access': access.as_dict()})
 
 
-@csrf_exempt
+
 def supplier_access_viewed(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -223,12 +224,16 @@ def supplier_access_viewed(request, token):
         return JsonResponse({'error': 'Not found'}, status=404)
 
 
+
 @csrf_exempt
 def supplier_portal_save_draft(request, token):
     try:
         access = SupplierAccess.objects.get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Invalid token'}, status=404)
+
+    if access.valid_until and access.valid_until < timezone.now():
+        return JsonResponse({'error': 'Token expired'}, status=403)
 
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -250,12 +255,16 @@ def supplier_portal_save_draft(request, token):
     return JsonResponse({'ok': True, 'message': 'Draft saved'})
 
 
+
 @csrf_exempt
 def supplier_portal_submit(request, token):
     try:
         access = SupplierAccess.objects.get(id=token)
     except SupplierAccess.DoesNotExist:
         return JsonResponse({'error': 'Invalid token'}, status=404)
+
+    if access.valid_until and access.valid_until < timezone.now():
+        return JsonResponse({'error': 'Token expired'}, status=403)
 
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -324,7 +333,7 @@ def supplier_portal_submit(request, token):
     return JsonResponse({'ok': True})
 
 
-@csrf_exempt
+
 def supplier_access_approve(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -375,6 +384,7 @@ def supplier_access_approve(request, token):
 
     updates_count = 0
     unmatched_count = 0
+    unmatched_items = []
     sup_name_norm = _normalize_name(access.supplier_name).lower()
     updated_item_keys = set()
 
@@ -404,14 +414,21 @@ def supplier_access_approve(request, token):
 
             if not sub_entry:
                 unmatched_count += 1
+                unmatched_items.append(it.get('item_drawing_no') or it.get('mpn') or it.get('id') or 'unknown')
                 continue
 
             try:
                 raw_price = str(sub_entry.get('price') or sub_entry.get('price_1') or '').replace(',', '.')
                 if not raw_price:
                     continue
-                new_price = float(Decimal(raw_price))
-            except (ValueError, InvalidOperation):
+                price_dec = Decimal(raw_price)
+                # Validate price range and reject NaN/Infinity
+                if price_dec != price_dec or price_dec <= 0 or price_dec > 10_000_000:
+                    logger.warning('Invalid price value rejected: %s (supplier=%s)', raw_price, access.supplier_name)
+                    continue
+                new_price = float(price_dec)
+            except (ValueError, InvalidOperation, TypeError):
+                logger.warning('Cannot parse price: %s (supplier=%s)', raw_price, access.supplier_name)
                 continue
 
             new_moq = sub_entry.get('moq') or ''
@@ -665,11 +682,11 @@ def supplier_access_approve(request, token):
             logger.warning('Failed to create Quote on approval: %s', e)
 
     logger.info('Approved %d/%d items for %s (unmatched: %d)', updates_count, len(items), access.supplier_name, unmatched_count)
-    _audit_log(request, actor, action='supplier.approve', entity_type='supplier_access', entity_id=access.id, project=proj, metadata={'updated_items': updates_count, 'unmatched_items': unmatched_count, 'status': access.status})
-    return JsonResponse({'ok': True, 'updated_items': updates_count, 'unmatched_items': unmatched_count, 'quote_number': quote_obj.quote_number if 'quote_obj' in dir() else None})
+    _audit_log(request, actor, action='supplier.approve', entity_type='supplier_access', entity_id=access.id, project=proj, metadata={'updated_items': updates_count, 'unmatched_items': unmatched_count, 'unmatched_item_keys': unmatched_items, 'status': access.status})
+    return JsonResponse({'ok': True, 'updated_items': updates_count, 'unmatched_items': unmatched_count, 'unmatched_item_keys': unmatched_items, 'quote_number': quote_obj.quote_number if 'quote_obj' in dir() else None})
 
 
-@csrf_exempt
+
 def supplier_access_reject(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -750,7 +767,7 @@ def supplier_access_reject(request, token):
     return JsonResponse({'ok': True, 'new_status': access.status, 'round': access.round})
 
 
-@csrf_exempt
+
 def project_supplier_access_list(request, project_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
@@ -792,7 +809,7 @@ def project_supplier_access_list(request, project_id):
     return JsonResponse({'accesses': data})
 
 
-@csrf_exempt
+
 def supplier_interaction_file_download(request, file_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
@@ -826,7 +843,7 @@ def supplier_interaction_file_download(request, file_id):
         return HttpResponse('File missing', status=404)
 
 
-@csrf_exempt
+
 def supplier_access_request_reopen(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -855,7 +872,7 @@ def supplier_access_request_reopen(request, token):
     return JsonResponse({'ok': True, 'message': 'Re-opening request sent to buyer.'})
 
 
-@csrf_exempt
+
 def supplier_access_update_items(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -918,7 +935,7 @@ def supplier_access_update_items(request, token):
     return JsonResponse({'ok': True, 'message': f'{len(new_items)} item(s) added.', 'new_count': len(new_items), 'access': access.as_dict()})
 
 
-@csrf_exempt
+
 def supplier_access_cancel(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -946,7 +963,7 @@ def supplier_access_cancel(request, token):
     return JsonResponse({'ok': True, 'access': access.as_dict()})
 
 
-@csrf_exempt
+
 def supplier_access_reopen_buyer(request, token):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -997,7 +1014,7 @@ def supplier_access_reopen_buyer(request, token):
     return JsonResponse({'ok': True, 'access': access.as_dict()})
 
 
-@csrf_exempt
+
 def supplier_access_bulk_generate(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
