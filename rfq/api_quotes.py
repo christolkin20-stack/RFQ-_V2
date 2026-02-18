@@ -1,10 +1,13 @@
 import json
+import logging
 import uuid
 from decimal import Decimal, InvalidOperation
 
+logger = logging.getLogger(__name__)
+
 from django.db import transaction
 from django.http import HttpResponseNotAllowed, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+
 
 from .api_common import (
     audit_log as _audit_log,
@@ -79,7 +82,7 @@ def _parse_val_decimal(val):
         return None
 
 
-@csrf_exempt
+
 def quotes_list(request):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
@@ -144,7 +147,7 @@ def quotes_list(request):
         if not exp_date and sub.get('quote_valid_until'):
             try:
                 exp_date = datetime.fromisoformat(str(sub.get('quote_valid_until')))
-            except Exception:
+            except (ValueError, TypeError):
                 pass
         items = sub.get('items') or p.requested_items or []
         lines_count = len(items) if isinstance(items, list) else 0
@@ -181,7 +184,7 @@ def quotes_list(request):
     return JsonResponse({'ok': True, 'quotes': page_items, 'total': total, 'limit': limit, 'offset': offset})
 
 
-@csrf_exempt
+
 def quotes_detail(request, quote_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
@@ -268,7 +271,7 @@ def quotes_detail(request, quote_id):
             if val is not None and str(val).strip():
                 try:
                     line[f'price_{i}'] = float(val)
-                except Exception:
+                except (ValueError, TypeError):
                     line[f'price_{i}'] = None
             else:
                 line[f'price_{i}'] = None
@@ -297,7 +300,7 @@ def quotes_detail(request, quote_id):
     return JsonResponse({'ok': True, 'quote': data})
 
 
-@csrf_exempt
+
 def quotes_create(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -396,7 +399,7 @@ def quotes_create(request):
     return JsonResponse({'ok': True, 'quote': quote.as_dict()}, status=201)
 
 
-@csrf_exempt
+
 def quotes_update(request, quote_id):
     if request.method not in ('PUT', 'POST'):
         return HttpResponseNotAllowed(['PUT', 'POST'])
@@ -496,7 +499,7 @@ def quotes_update(request, quote_id):
     return JsonResponse({'ok': True, 'quote': quote.as_dict()})
 
 
-@csrf_exempt
+
 def quotes_delete(request, quote_id):
     if request.method != 'DELETE':
         return HttpResponseNotAllowed(['DELETE'])
@@ -525,7 +528,7 @@ def quotes_delete(request, quote_id):
     return JsonResponse({'ok': True, 'deleted': quote_number})
 
 
-@csrf_exempt
+
 def quotes_create_from_item(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -546,7 +549,7 @@ def quotes_create_from_item(request):
 
     try:
         data = json.loads(request.body)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     pid = data.get('project_id')
@@ -609,7 +612,7 @@ def quotes_create_from_item(request):
     return JsonResponse({'ok': True, 'quote_id': quote.id, 'line_id': line.id})
 
 
-@csrf_exempt
+
 def quotes_export_to_item(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -629,7 +632,7 @@ def quotes_export_to_item(request):
 
     try:
         data = json.loads(request.body)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     pid = data.get('project_id')
@@ -708,10 +711,11 @@ def quotes_export_to_item(request):
 
         return JsonResponse({'ok': True, 'updated': updates_count})
     except Exception as e:
+        logger.exception('Unexpected error in quote export to item')
         return JsonResponse({'error': f'Server Error: {str(e)}'}, status=500)
 
 
-@csrf_exempt
+
 def quotes_bulk_import(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -793,7 +797,7 @@ def quotes_bulk_import(request):
     return JsonResponse({'ok': True, 'imported_quotes': imported_count, 'imported_lines': lines_count, 'errors': errors})
 
 
-@csrf_exempt
+
 def quotes_upsert_from_planner(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -814,7 +818,7 @@ def quotes_upsert_from_planner(request):
 
     try:
         data = json.loads(request.body)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     pid = data.get('project_id')
@@ -910,4 +914,5 @@ def quotes_upsert_from_planner(request):
 
         return JsonResponse({'ok': True, 'quote_id': quote.id, 'quote_number': quote.quote_number, 'lines_count': lines_count, 'is_update': is_update})
     except Exception as e:
+        logger.exception('Unexpected error in quote upsert from planner')
         return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)

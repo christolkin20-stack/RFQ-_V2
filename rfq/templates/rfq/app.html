@@ -100,9 +100,10 @@
                 scopeEl.addEventListener('change', async () => {
                   scopeEl.disabled = true;
                   try {
+                    const csrfToken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
                     const res = await fetch('/api/session/switch_company', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
+                      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                       credentials: 'same-origin',
                       body: JSON.stringify({ company_id: scopeEl.value })
                     });

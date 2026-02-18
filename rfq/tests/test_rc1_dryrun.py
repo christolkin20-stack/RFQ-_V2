@@ -1,8 +1,11 @@
 import json
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 
-from rfq.models import Project, SupplierAccess
+from rfq.models import Company, Project, SupplierAccess, UserCompanyProfile
+
+User = get_user_model()
 
 
 def _project_with_10_items():
@@ -26,7 +29,14 @@ def _project_with_10_items():
 @override_settings(SECURE_SSL_REDIRECT=False, DEBUG=True, ALLOWED_HOSTS=['testserver'])
 class RC1DryrunTests(TestCase):
     def setUp(self):
-        self.project = Project.objects.create(id='rc1-proj', name='RC1 Project', data=_project_with_10_items())
+        self.company = Company.objects.create(name='RC1 Co', is_active=True)
+        self.user = User.objects.create_user(username='rc1buyer', password='testpass123')
+        UserCompanyProfile.objects.create(
+            user=self.user, company=self.company, role='admin', is_active=True, is_management=True,
+        )
+        self.client.force_login(self.user)
+
+        self.project = Project.objects.create(id='rc1-proj', name='RC1 Project', data=_project_with_10_items(), company=self.company)
         self.acc1 = SupplierAccess.objects.create(
             id='tok-s1',
             project=self.project,
@@ -35,6 +45,7 @@ class RC1DryrunTests(TestCase):
             status='sent',
             round=1,
             submission_data={},
+            company=self.company,
         )
         self.acc2 = SupplierAccess.objects.create(
             id='tok-s2',
@@ -44,6 +55,7 @@ class RC1DryrunTests(TestCase):
             status='sent',
             round=1,
             submission_data={},
+            company=self.company,
         )
 
     def _submit_and_approve(self, token, start_idx, end_idx, price_base):

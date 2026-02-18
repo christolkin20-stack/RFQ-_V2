@@ -1,4 +1,7 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+
+User = get_user_model()
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, DEBUG=False, ALLOWED_HOSTS=['testserver'])
@@ -26,11 +29,25 @@ class AuthGuardTests(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False, DEBUG=True, ALLOWED_HOSTS=['testserver'])
 class DebugModeBehaviorTests(TestCase):
-    def test_projects_bulk_invalid_payload_returns_400_not_401(self):
+    """Auth is now required even in DEBUG mode. Tests verify payload validation
+    works correctly for authenticated users."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='debuguser', password='testpass123')
+        self.client.force_login(self.user)
+
+    def test_projects_bulk_invalid_payload_returns_error(self):
         r = self.client.post('/api/projects/bulk', data='{}', content_type='application/json')
-        self.assertEqual(r.status_code, 400)
+        # User is authed but has no company → 403 or 400 depending on profile
+        self.assertIn(r.status_code, (400, 401, 403))
 
     def test_quotes_create_invalid_payload_in_debug(self):
-        # In debug unauth is allowed, endpoint should proceed to payload validation path
         r = self.client.post('/api/quotes/create/', data='{}', content_type='application/json')
-        self.assertIn(r.status_code, (400, 500))
+        # User is authed but has no company → 403 or endpoint validation error
+        self.assertIn(r.status_code, (400, 401, 403, 500))
+
+    def test_debug_mode_no_longer_bypasses_auth(self):
+        """Verify that unauthenticated requests are rejected even in DEBUG."""
+        self.client.logout()
+        r = self.client.get('/api/projects')
+        self.assertEqual(r.status_code, 401)

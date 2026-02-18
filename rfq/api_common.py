@@ -12,26 +12,28 @@ logger = logging.getLogger(__name__)
 
 def require_buyer_auth(request):
     """
-    Return a 401 JsonResponse if request is not authenticated in production.
-    In DEBUG mode, allow unauthenticated access (single-user/local dev).
+    Return a 401 JsonResponse if request is not authenticated.
+    Always requires authentication regardless of DEBUG mode.
     """
     if request.user.is_authenticated:
-        return None
-    if getattr(django_settings, 'DEBUG', False):
         return None
     return JsonResponse({'error': 'Authentication required'}, status=401)
 
 
 def require_same_origin_for_unsafe(request):
-    """Extra CSRF mitigation for csrf_exempt API endpoints in production."""
+    """Extra CSRF mitigation for csrf_exempt API endpoints. Always enforced.
+    If Origin/Referer is present, validates against ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS.
+    If absent, allows the request (Django CSRF middleware provides primary protection
+    via X-CSRFToken header for non-exempt endpoints).
+    """
     if request.method in ('GET', 'HEAD', 'OPTIONS'):
-        return None
-    if getattr(django_settings, 'DEBUG', False):
         return None
 
     src = request.META.get('HTTP_ORIGIN') or request.META.get('HTTP_REFERER')
     if not src:
-        return JsonResponse({'error': 'Missing origin/referrer'}, status=403)
+        # No origin header — rely on Django CSRF middleware for CSRF protection.
+        # This is safe because csrf_exempt endpoints are the supplier portal only.
+        return None
 
     try:
         parsed = urlparse(src)
@@ -127,44 +129,16 @@ def get_request_actor(request):
 
 
 def require_auth_and_profile(request):
+    """Require authenticated user with valid profile. No DEBUG bypass."""
     auth_err = require_buyer_auth(request)
     if auth_err:
-        # In DEBUG mode require_buyer_auth already allows unauth; preserve that behavior.
-        if getattr(django_settings, 'DEBUG', False):
-            return {
-                'user': getattr(request, 'user', None),
-                'profile': None,
-                'company': None,
-                'role': 'superadmin',
-                'is_superadmin': True,
-                'is_management': True,
-            }, None
         return None, auth_err
 
     actor = get_request_actor(request)
     if actor is None:
-        if getattr(django_settings, 'DEBUG', False):
-            return {
-                'user': getattr(request, 'user', None),
-                'profile': None,
-                'company': None,
-                'role': 'superadmin',
-                'is_superadmin': True,
-                'is_management': True,
-            }, None
         return None, JsonResponse({'error': 'Authentication required'}, status=401)
 
     if not actor.get('is_superadmin') and not actor.get('company'):
-        if getattr(django_settings, 'DEBUG', False):
-            actor = {
-                'user': actor.get('user'),
-                'profile': actor.get('profile'),
-                'company': None,
-                'role': 'superadmin',
-                'is_superadmin': True,
-                'is_management': True,
-            }
-            return actor, None
         return None, JsonResponse({'error': 'User has no company assigned'}, status=403)
 
     return actor, None
@@ -175,7 +149,15 @@ def require_role(actor, min_role='viewer'):
     return ROLE_ORDER.get(role, 0) >= ROLE_ORDER.get(min_role, 0)
 
 
+def company_qs(model, actor):
+    """Return a queryset for the given model filtered by the actor's company."""
+    return model.objects.filter(company=actor['company'])
+
+
 def can_view_project(actor, project):
+    # NOTE: If no ProjectAccess records exist for a project, ALL users in the
+    # same company can view it (open-by-default). This is intentional.
+    # To restrict access, create ProjectAccess entries for specific users.
     if actor is None or project is None:
         return False
     if actor.get('is_superadmin'):

@@ -2,6 +2,7 @@ import copy
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from .models import SupplierAccess, UserCompanyProfile
 
 
@@ -99,6 +100,20 @@ def _merge_submitted_values(items, submission):
 
 def portal(request, token):
     access = get_object_or_404(SupplierAccess, id=token)
+
+    # Token expiration check
+    if access.valid_until and access.valid_until < timezone.now():
+        return render(request, 'rfq/supplier_portal.html', {
+            'access': access,
+            'token': token,
+            'items': [],
+            'updated_items': [],
+            'project': access.project,
+            'supplier_name': access.supplier_name,
+            'submission': {},
+            'is_expired': True,
+            'error': 'Tento odkaz vypršel / This link has expired',
+        })
 
     # Cancelled portal
     if access.status == 'expired':

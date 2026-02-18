@@ -7,6 +7,12 @@
   // - safe defaults so rfq.js never crashes on first load
   // =========================================================
 
+  // CSRF token helper — reads Django's csrftoken cookie for X-CSRFToken header
+  const getCSRFToken = () => {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  };
+
   const LS_KEYS = {
     PROJECTS: "rfq_projects_v1",
     ACTIVE_PROJECT: "rfq_active_project_id",
@@ -96,12 +102,18 @@ const nowIso = () => new Date().toISOString();
 
   const _fetchJson = (url, opts) => {
     try {
+      const method = (opts && opts.method) || 'GET';
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(opts && opts.headers ? opts.headers : {}),
+      };
+      // Attach CSRF token for unsafe methods (POST, PUT, DELETE, PATCH)
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        headers['X-CSRFToken'] = getCSRFToken();
+      }
       return fetch(url, {
-        method: (opts && opts.method) || 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(opts && opts.headers ? opts.headers : {}),
-        },
+        method,
+        headers,
         credentials: 'same-origin',
         body: opts && opts.body !== undefined ? opts.body : undefined,
       }).then(async (r) => {

@@ -10279,7 +10279,7 @@ window.SystemApps.rfq = {
 
             // also reset server storage (Django)
             try {
-                fetch('/api/projects/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' }).catch(() => { });
+                fetch('/api/projects/reset', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, credentials: 'same-origin' }).catch(() => { });
             } catch (e) { }
             if (window.showToast) window.showToast('RFQ data cleared. Reloading…', 'success');
             setTimeout(() => location.reload(), 500);
@@ -14200,7 +14200,12 @@ window.SystemApps.rfq = {
 
         async function projDetailFetchJson(url, opts) {
             const o = opts || {};
-            const res = await fetch(url, { method: o.method || 'GET', body: o.body, credentials: 'same-origin' });
+            const method = o.method || 'GET';
+            const headers = {};
+            if (method !== 'GET' && method !== 'HEAD') {
+                headers['X-CSRFToken'] = getCookie('csrftoken');
+            }
+            const res = await fetch(url, { method, body: o.body, credentials: 'same-origin', headers });
             if (!res.ok) {
                 const t = await res.text().catch(() => '');
                 throw new Error(t || ('HTTP ' + res.status));
@@ -19681,7 +19686,7 @@ Best regards`)}</textarea>
                     try {
                         const r = await fetch('/api/export', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                             body: JSON.stringify(opts),
                             credentials: 'same-origin',
                         });
@@ -29105,7 +29110,8 @@ Best regards`)}</textarea>
 
             fetch('/api/quotes/upsert_from_planner/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                credentials: 'same-origin',
                 body: JSON.stringify(payload),
             })
             .then(r => r.json())

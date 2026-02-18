@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+
 
 from .api_common import (
     audit_log,
@@ -28,7 +28,7 @@ def _num(v):
     try:
         s = str(v or '').replace(',', '.').strip()
         return float(s) if s else 0.0
-    except Exception:
+    except (ValueError, TypeError):
         return 0.0
 
 
@@ -260,7 +260,7 @@ def session_me(request):
     return JsonResponse(data)
 
 
-@csrf_exempt
+
 def session_switch_company(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -297,7 +297,7 @@ def session_switch_company(request):
     return JsonResponse({'ok': True, 'scope': 'company', 'company_id': c.id, 'company_name': c.name})
 
 
-@csrf_exempt
+
 def projects_collection(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -352,7 +352,7 @@ def projects_collection(request):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def project_detail(request, project_id: str):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -423,7 +423,7 @@ def project_detail(request, project_id: str):
     return HttpResponseNotAllowed(['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
-@csrf_exempt
+
 def projects_bulk(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -517,7 +517,7 @@ def projects_bulk(request):
     return JsonResponse({'ok': True, 'upserted': upserted, 'deleted': deleted, 'skipped': skipped, 'full_replace': allow_delete})
 
 
-@csrf_exempt
+
 def projects_reset(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -536,7 +536,7 @@ def projects_reset(request):
     return JsonResponse({'ok': True, 'deleted': deleted})
 
 
-@csrf_exempt
+
 def project_attachments(request, project_id: str):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -571,7 +571,7 @@ def project_attachments(request, project_id: str):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def project_attachment_detail(request, project_id: str, attachment_id: str):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -600,7 +600,7 @@ def project_attachment_detail(request, project_id: str, attachment_id: str):
     return HttpResponseNotAllowed(['DELETE'])
 
 
-@csrf_exempt
+
 def project_access(request, project_id: str):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -660,7 +660,7 @@ def project_access(request, project_id: str):
                 uid = row.get('user_id')
                 try:
                     uid = int(uid)
-                except Exception:
+                except (ValueError, TypeError):
                     continue
                 if uid not in allowed_ids:
                     continue
@@ -681,7 +681,7 @@ def project_access(request, project_id: str):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def locks_acquire(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -758,7 +758,7 @@ def locks_acquire(request):
     })
 
 
-@csrf_exempt
+
 def locks_heartbeat(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -801,7 +801,7 @@ def locks_heartbeat(request):
     return JsonResponse({'ok': True, 'renewed': True, 'expires_at': expires_at.isoformat()})
 
 
-@csrf_exempt
+
 def locks_release(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -833,7 +833,7 @@ def locks_release(request):
     return JsonResponse({'ok': True, 'released': bool(deleted)})
 
 
-@csrf_exempt
+
 def locks_status(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -870,7 +870,7 @@ def locks_status(request):
     })
 
 
-@csrf_exempt
+
 def locks_force_unlock(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -905,7 +905,7 @@ def locks_force_unlock(request):
     return JsonResponse({'ok': True, 'forced': bool(deleted)})
 
 
-@csrf_exempt
+
 def admin_users(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -982,7 +982,7 @@ def admin_users(request):
 
         try:
             uid = int(payload.get('user_id'))
-        except Exception:
+        except (ValueError, TypeError):
             return JsonResponse({'error': 'user_id required'}, status=400)
 
         profile = UserCompanyProfile.objects.filter(user_id=uid).select_related('company').first()
@@ -1053,7 +1053,7 @@ def admin_users(request):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
-@csrf_exempt
+
 def admin_companies(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -1140,7 +1140,7 @@ def admin_companies(request):
 
 
 
-@csrf_exempt
+
 def admin_locks(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -1159,7 +1159,7 @@ def admin_locks(request):
 
     try:
         limit = min(int(request.GET.get('limit', 200)), 500)
-    except Exception:
+    except (ValueError, TypeError):
         limit = 200
 
     rows = []
@@ -1179,7 +1179,7 @@ def admin_locks(request):
     return JsonResponse({'locks': rows})
 
 
-@csrf_exempt
+
 def admin_audit_logs(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
@@ -1207,7 +1207,7 @@ def admin_audit_logs(request):
 
     try:
         limit = min(int(request.GET.get('limit', 100)), 500)
-    except Exception:
+    except (ValueError, TypeError):
         limit = 100
 
     rows = []
@@ -1228,7 +1228,7 @@ def admin_audit_logs(request):
     return JsonResponse({'logs': rows})
 
 
-@csrf_exempt
+
 def export_data(request):
     actor, auth_err = require_auth_and_profile(request)
     if auth_err:
