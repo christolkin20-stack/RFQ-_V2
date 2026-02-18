@@ -23,13 +23,16 @@
     .list{max-height:360px;overflow:auto;border:1px solid #334155;border-radius:8px}
     .row{padding:8px;border-bottom:1px solid #1f2937;font-size:12px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
     .row:last-child{border-bottom:0}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center}
     .badge{display:inline-block;padding:2px 6px;border-radius:99px;border:1px solid #334155;background:#0b1224;font-size:11px}
     .toast{position:fixed;right:14px;bottom:14px;background:#0f172a;border:1px solid #334155;padding:10px 12px;border-radius:10px;display:none;max-width:340px}
     .danger{color:#fca5a5}.ok{color:#86efac}
     .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.68);display:flex;align-items:center;justify-content:center;z-index:9999}
     .modal-card{width:min(460px,92vw);background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px}
     .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+    .bulk-bar{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 12px;display:none;align-items:center;gap:8px;margin:8px 0;font-size:12px}
+    .bulk-bar b{color:#60a5fa}
+    input[type="date"]{color-scheme:dark}
     @media (max-width:1000px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
@@ -92,12 +95,22 @@
           <input id="usearch" placeholder="Filter users (name/email/role/company)" />
           <button id="urefresh">Refresh</button>
         </div>
+        <div class="bulk-bar" id="ubulk-bar">
+          <b id="ubulk-count">0</b> selected
+          <select id="ubulk-role"><option value="">Bulk role...</option><option>viewer</option><option>editor</option><option>admin</option></select>
+          <button id="ubulk-apply" class="primary">Apply Role</button>
+          <button id="ubulk-deactivate" class="warn">Deactivate</button>
+          <button id="ubulk-clear">Clear</button>
+        </div>
         <div id="users" class="list"></div>
       </div>
 
       <div class="card">
         <h3>🔒 Active Locks</h3>
-        <div class="controls"><button id="lrefresh">Refresh</button></div>
+        <div class="controls">
+          <button id="lrefresh">Refresh</button>
+          <button id="lbulk-unlock" class="warn" style="display:none">Unlock Selected (<span id="lbulk-count">0</span>)</button>
+        </div>
         <div id="locks" class="list"></div>
       </div>
 
@@ -106,7 +119,9 @@
         <div class="controls">
           <input id="af" placeholder="action filter" />
           <input id="ef" placeholder="entity filter" />
-          <input id="actorf" placeholder="actor contains (local filter)" />
+          <input id="actorf" placeholder="actor contains" />
+          <input type="date" id="adate-from" title="From date" />
+          <input type="date" id="adate-to" title="To date" />
           <button id="arefresh">Refresh</button>
         </div>
         <div id="audit" class="list"></div>
@@ -117,7 +132,7 @@
   <div id="toast" class="toast"></div>
 
 <script>
-let state = { companies: [], users: [], locks: [], logs: [], editingCompanyId: null };
+let state = { companies: [], users: [], locks: [], logs: [], editingCompanyId: null, selectedUserIds: new Set(), selectedLocks: new Set() };
 
 function _csrf(){return (document.cookie.match(/csrftoken=([^;]+)/)||[])[1]||'';}
 async function j(url, o={}){const h={'Content-Type':'application/json',...(o.headers||{})};const m=(o.method||'GET').toUpperCase();if(m!=='GET'&&m!=='HEAD')h['X-CSRFToken']=_csrf();const r=await fetch(url,{credentials:'same-origin',...o,headers:h});const d=await r.json().catch(()=>({}));if(!r.ok) throw new Error(d.error||r.status);return d;}
@@ -218,6 +233,13 @@ async function loadCompanies(){
   updateStats();
 }
 
+function updateUserBulkBar(){
+  const bar=document.getElementById('ubulk-bar');
+  const count=state.selectedUserIds.size;
+  document.getElementById('ubulk-count').textContent=count;
+  bar.style.display=count>0?'flex':'none';
+}
+
 async function loadUsers(){
   const d=await j('/api/admin/users');
   state.users = d.users||[];
@@ -253,10 +275,13 @@ async function loadUsers(){
   const groupNames = Object.keys(grouped).sort((a,b)=>a.localeCompare(b));
 
   el.innerHTML=groupNames.map(g=>`<div style='padding:6px 8px;background:#0b1224;border-bottom:1px solid #334155;font-size:11px;font-weight:700;color:#cbd5e1;'>${esc(g)} (${grouped[g].length})</div>${grouped[g].map(u=>`<div class='row'>
-      <div>
-        <b>${esc(u.username)}</b> <span class='badge'>${esc(u.role)}</span> ${u.is_management?'<span class="badge">mgmt</span>':''} ${u.is_active?'':'<span class="badge">inactive</span>'}
-        <div class='muted'>${esc(u.email||'')} • ${esc(u.company_name||'no company')}</div>
-        <div class='muted'>Last login: ${esc(u.last_login?u.last_login.replace('T',' ').slice(0,19):'never')}</div>
+      <div style='display:flex;align-items:flex-start;gap:8px;'>
+        <input type='checkbox' class='uchk' data-uid='${u.user_id}' ${state.selectedUserIds.has(String(u.user_id))?'checked':''} style='margin-top:3px;' />
+        <div>
+          <b>${esc(u.username)}</b> <span class='badge'>${esc(u.role)}</span> ${u.is_management?'<span class="badge">mgmt</span>':''} ${u.is_active?'':'<span class="badge">inactive</span>'}
+          <div class='muted'>${esc(u.email||'')} • ${esc(u.company_name||'no company')}</div>
+          <div class='muted'>Last login: ${esc(u.last_login?u.last_login.replace('T',' ').slice(0,19):'never')}</div>
+        </div>
       </div>
       <div class='controls'>
         <select data-r='${u.user_id}'>${['viewer','editor','admin','superadmin'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select>
@@ -268,6 +293,13 @@ async function loadUsers(){
         <button data-del='${u.user_id}' class='warn'>Delete</button>
       </div>
     </div>`).join('')}`).join('')||"<div class='row'>No users</div>";
+
+  // User selection checkboxes
+  el.querySelectorAll('.uchk').forEach(cb=>cb.onchange=()=>{
+    const uid=cb.dataset.uid;
+    if(cb.checked) state.selectedUserIds.add(uid); else state.selectedUserIds.delete(uid);
+    updateUserBulkBar();
+  });
 
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.s;
@@ -297,16 +329,34 @@ async function loadUsers(){
     await loadUsers();
   });
   updateStats();
+  updateUserBulkBar();
+}
+
+function updateLockBulkBtn(){
+  const btn=document.getElementById('lbulk-unlock');
+  const count=state.selectedLocks.size;
+  document.getElementById('lbulk-count').textContent=count;
+  btn.style.display=count>0?'inline-block':'none';
 }
 
 async function loadLocks(){
   const d=await j('/api/admin/locks?limit=200');
   state.locks = d.locks||[];
+  state.selectedLocks.clear();
   const el=document.getElementById('locks');
   el.innerHTML=state.locks.map(l=>`<div class='row'>
-    <div><b>${esc(l.context)}</b><div class='muted'>${esc(l.project_name||l.project_id)} • ${esc(l.locked_by)} • exp: ${esc((l.expires_at||'').replace('T',' ').slice(0,19))}</div></div>
+    <div style='display:flex;align-items:flex-start;gap:8px;'>
+      <input type='checkbox' class='lchk' data-lk='${esc(l.resource_key)}' style='margin-top:3px;' />
+      <div><b>${esc(l.context)}</b><div class='muted'>${esc(l.project_name||l.project_id)} • ${esc(l.locked_by)} • exp: ${esc((l.expires_at||'').replace('T',' ').slice(0,19))}</div></div>
+    </div>
     <div><button data-f='${esc(l.resource_key)}' class='warn'>Force unlock</button></div>
   </div>`).join('')||"<div class='row'>No active locks</div>";
+
+  el.querySelectorAll('.lchk').forEach(cb=>cb.onchange=()=>{
+    if(cb.checked) state.selectedLocks.add(cb.dataset.lk); else state.selectedLocks.delete(cb.dataset.lk);
+    updateLockBulkBtn();
+  });
+
   el.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{
     if(!(await appConfirm('Force unlock this record?', 'Force unlock'))) return;
     await j('/api/locks/force_unlock',{method:'POST',body:JSON.stringify({resource_key:b.dataset.f})});
@@ -314,11 +364,18 @@ async function loadLocks(){
     await loadLocks();
   });
   updateStats();
+  updateLockBulkBtn();
 }
 
 async function loadAudit(){
-  const a=document.getElementById('af').value||''; const e=document.getElementById('ef').value||'';
-  const d=await j('/api/admin/audit_logs?limit=200&action='+encodeURIComponent(a)+'&entity_type='+encodeURIComponent(e));
+  const a=document.getElementById('af').value||'';
+  const e=document.getElementById('ef').value||'';
+  const dateFrom=document.getElementById('adate-from').value||'';
+  const dateTo=document.getElementById('adate-to').value||'';
+  let url='/api/admin/audit_logs?limit=200&action='+encodeURIComponent(a)+'&entity_type='+encodeURIComponent(e);
+  if(dateFrom) url+='&date_from='+encodeURIComponent(dateFrom);
+  if(dateTo) url+='&date_to='+encodeURIComponent(dateTo);
+  const d=await j(url);
   const actorFilter=(document.getElementById('actorf').value||'').toLowerCase().trim();
   state.logs = (d.logs||[]).filter(x=>!actorFilter || String(x.actor||'').toLowerCase().includes(actorFilter));
   const el=document.getElementById('audit');
@@ -346,6 +403,57 @@ document.getElementById('urole').onchange=(e)=>{const c=document.getElementById(
 document.getElementById('usearch').oninput=()=>loadUsers();
 document.getElementById('ucompany-filter').onchange=()=>loadUsers();
 document.getElementById('actorf').oninput=()=>loadAudit();
+document.getElementById('adate-from').onchange=()=>loadAudit();
+document.getElementById('adate-to').onchange=()=>loadAudit();
+
+// Bulk user actions
+document.getElementById('ubulk-apply').onclick=async()=>{
+  const role=document.getElementById('ubulk-role').value;
+  if(!role){toast('Select a role first',false);return;}
+  const ids=Array.from(state.selectedUserIds);
+  if(ids.length===0) return;
+  if(!(await appConfirm(`Assign role "${role}" to ${ids.length} user(s)?`, 'Bulk role change'))) return;
+  let ok=0;
+  for(const id of ids){
+    try{ await j('/api/admin/users',{method:'POST',body:JSON.stringify({user_id:Number(id),role})}); ok++; }catch(e){ toast('Error updating user #'+id+': '+e.message, false); }
+  }
+  state.selectedUserIds.clear();
+  toast(`Role updated for ${ok} user(s)`);
+  await loadUsers();
+};
+
+document.getElementById('ubulk-deactivate').onclick=async()=>{
+  const ids=Array.from(state.selectedUserIds);
+  if(ids.length===0) return;
+  if(!(await appConfirm(`Deactivate ${ids.length} user(s)?`, 'Bulk deactivate'))) return;
+  let ok=0;
+  for(const id of ids){
+    try{ await j('/api/admin/users',{method:'POST',body:JSON.stringify({user_id:Number(id),is_active:false})}); ok++; }catch(e){ toast('Error deactivating user #'+id+': '+e.message, false); }
+  }
+  state.selectedUserIds.clear();
+  toast(`Deactivated ${ok} user(s)`);
+  await loadUsers();
+};
+
+document.getElementById('ubulk-clear').onclick=()=>{
+  state.selectedUserIds.clear();
+  document.querySelectorAll('.uchk').forEach(cb=>cb.checked=false);
+  updateUserBulkBar();
+};
+
+// Bulk lock unlock
+document.getElementById('lbulk-unlock').onclick=async()=>{
+  const keys=Array.from(state.selectedLocks);
+  if(keys.length===0) return;
+  if(!(await appConfirm(`Force unlock ${keys.length} lock(s)?`, 'Bulk force unlock'))) return;
+  let ok=0;
+  for(const key of keys){
+    try{ await j('/api/locks/force_unlock',{method:'POST',body:JSON.stringify({resource_key:key})}); ok++; }catch(e){ toast('Error unlocking: '+e.message, false); }
+  }
+  toast(`Unlocked ${ok} lock(s)`);
+  await loadLocks();
+};
+
 document.getElementById('ucreate').onclick=async()=>{
   const username=document.getElementById('uname').value.trim();
   const password=document.getElementById('upass').value.trim();

@@ -1205,6 +1205,22 @@ def admin_audit_logs(request):
     if entity:
         q = q.filter(entity_type__icontains=entity)
 
+    date_from = str(request.GET.get('date_from') or '').strip()
+    if date_from:
+        from datetime import datetime as _dt
+        try:
+            q = q.filter(created_at__gte=_dt.fromisoformat(date_from))
+        except ValueError:
+            pass
+
+    date_to = str(request.GET.get('date_to') or '').strip()
+    if date_to:
+        from datetime import datetime as _dt, timedelta as _td
+        try:
+            q = q.filter(created_at__lt=_dt.fromisoformat(date_to) + _td(days=1))
+        except ValueError:
+            pass
+
     try:
         limit = min(int(request.GET.get('limit', 100)), 500)
     except (ValueError, TypeError):
