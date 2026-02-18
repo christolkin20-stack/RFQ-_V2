@@ -1,7 +1,12 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file (contains DATABASE_URL, secrets, etc.)
+load_dotenv(BASE_DIR / '.env')
 
 _secret = os.environ.get('DJANGO_SECRET_KEY', '')
 # Secure-by-default: fail loudly in production if SECRET_KEY is not set
@@ -63,13 +68,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rfq_django.wsgi.application'
 
-# WARNING: SQLite is for development only. For production use PostgreSQL.
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database: Supabase PostgreSQL (production) or SQLite (local fallback)
+# Set DATABASE_URL in .env file, e.g.:
+#   DATABASE_URL=postgresql://postgres:PASSWORD@db.XXX.supabase.co:5432/postgres
+_db_url = os.environ.get('DATABASE_URL', '')
+if _db_url:
+    DATABASES = {
+        'default': dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=True)
     }
-}
+else:
+    # Fallback: SQLite for local development without .env
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
