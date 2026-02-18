@@ -951,6 +951,7 @@ window.SystemApps.rfq = {
                                     <!-- Options populated dynamically from getItemStatuses() -->
                                 </select>
                                 <button id="btn-bulk-export" class="btn-text" style="color: white; font-weight: 500;">📤 Export Selected</button>
+                                <button id="btn-bulk-delete" class="btn-text" style="color: #ff6b6b; font-weight: 500;">🗑️ Delete</button>
                                 <button id="btn-bulk-clear" style="background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 4px;">&times;</button>
                             </div>
 
@@ -9913,6 +9914,9 @@ window.SystemApps.rfq = {
 
             const btnBulkExport = getEl('btn-bulk-export');
             if (btnBulkExport) btnBulkExport.onclick = handleBulkExport;
+
+            const btnBulkDelete = getEl('btn-bulk-delete');
+            if (btnBulkDelete) btnBulkDelete.onclick = handleBulkDelete;
 
             const selBulkStatus = getEl('bulk-status-select');
             if (selBulkStatus) selBulkStatus.onchange = (e) => handleBulkStatusChange(e.target.value);
@@ -25157,7 +25161,7 @@ Best regards`)}</textarea>
             if (currentView === 'dashboard') renderDashboard();
         }
 
-        function handleBulkExport() {
+        async function handleBulkExport() {
             // Get selected items from SuperTable or fallback to selectedItems
             let itemsToExport = [];
             if (itemsSuperTable) {
@@ -25169,6 +25173,15 @@ Best regards`)}</textarea>
             }
 
             if (itemsToExport.length === 0) return;
+
+            const confirmed = await window.showConfirmDialog({
+                title: 'Export Selected Items',
+                message: `Export ${itemsToExport.length} items to Excel?`,
+                type: 'question',
+                okText: 'Export',
+                cancelText: 'Cancel'
+            });
+            if (!confirmed) return;
 
             if (typeof XLSX === 'undefined') {
                 showToast('Excel library not loaded. Fix: include XLSX (xlsx.full.min.js) or open with internet (CDN).', 'error');
@@ -25187,6 +25200,62 @@ Best regards`)}</textarea>
             XLSX.utils.book_append_sheet(wb, ws, "Selected Items");
             const filename = `Export_${currentProject.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
             XLSX.writeFile(wb, filename);
+        }
+
+        async function handleBulkDelete() {
+            let selectedIndices = [];
+            if (itemsSuperTable) {
+                selectedIndices = itemsSuperTable.getSelectedIndices();
+            } else {
+                selectedIndices = Array.from(selectedItems);
+            }
+            if (selectedIndices.length === 0) return;
+
+            const confirmed = await window.showConfirmDialog({
+                title: 'Delete Items',
+                message: `You are about to permanently delete ${selectedIndices.length} item(s) from this project.\n\nThis action cannot be undone.`,
+                type: 'danger',
+                okText: 'Continue to Delete',
+                cancelText: 'Cancel'
+            });
+            if (!confirmed) return;
+
+            const typed = await window.showPromptDialog({
+                title: 'Type to Confirm Deletion',
+                message: `Type "DELETE" to confirm deletion of ${selectedIndices.length} item(s):`,
+                placeholder: 'DELETE',
+                okText: 'Delete Permanently',
+                cancelText: 'Cancel'
+            });
+            if (typed !== 'DELETE') {
+                if (typed !== null) {
+                    showToast('Deletion cancelled — you must type exactly "DELETE"', 'warning');
+                }
+                return;
+            }
+
+            const sorted = selectedIndices.slice().sort((a, b) => b - a);
+            sorted.forEach(idx => {
+                if (currentProject.items[idx]) {
+                    currentProject.items.splice(idx, 1);
+                }
+            });
+
+            if (window.RFQData && typeof window.RFQData.updateProject === 'function') {
+                window.RFQData.updateProject(currentProject);
+            } else if (typeof updateProject === 'function') {
+                updateProject(currentProject);
+            }
+
+            selectedItems.clear();
+            if (itemsSuperTable) {
+                itemsSuperTable.clearSelection();
+                itemsSuperTable.setData(currentProject.items);
+            }
+            updateStats();
+            const bulkBar = document.getElementById('bulk-action-bar');
+            if (bulkBar) bulkBar.classList.add('hidden');
+            showToast(`Deleted ${sorted.length} items`, 'success');
         }
 
         function getSupplierData(supplierName) {
@@ -36135,10 +36204,18 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             // Bind bulk action buttons
             const bulkStatusSelect = container.querySelector('#pc-bulk-status-select');
             if (bulkStatusSelect) {
-                bulkStatusSelect.onchange = () => {
+                bulkStatusSelect.onchange = async () => {
                     const newStatus = bulkStatusSelect.value;
                     if (!newStatus || pcSelectedItems.size === 0) return;
                     const count = pcSelectedItems.size;
+                    const confirmed = await window.showConfirmDialog({
+                        title: 'Change Status',
+                        message: `Change status to "${newStatus}" for ${count} items in Price Comparison?`,
+                        type: 'question',
+                        okText: 'Change',
+                        cancelText: 'Cancel'
+                    });
+                    if (!confirmed) { bulkStatusSelect.value = ''; return; }
                     pcSelectedItems.forEach(idx => {
                         const item = currentProject.items[idx];
                         if (item) {
@@ -36164,9 +36241,17 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             // Unselect Supplier bulk action
             const bulkUnselectBtn = container.querySelector('#pc-bulk-unselect');
             if (bulkUnselectBtn) {
-                bulkUnselectBtn.onclick = () => {
+                bulkUnselectBtn.onclick = async () => {
                     if (pcSelectedItems.size === 0) return;
                     const count = pcSelectedItems.size;
+                    const confirmed = await window.showConfirmDialog({
+                        title: 'Unselect Main Supplier',
+                        message: `Remove the main supplier assignment from ${count} items?\n\nThis will clear the selected supplier for all checked items.`,
+                        type: 'danger',
+                        okText: 'Unselect All',
+                        cancelText: 'Cancel'
+                    });
+                    if (!confirmed) return;
                     pcSelectedItems.forEach(idx => {
                         const item = currentProject.items[idx];
                         if (item && Array.isArray(item.suppliers)) {
