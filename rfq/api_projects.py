@@ -17,7 +17,7 @@ from .api_common import (
     json_body,
 )
 from .models import Company, Project, Attachment, EditLock, ProjectAccess, UserCompanyProfile
-from . import views_api as _v
+from .api_export import render_export as _render_export
 
 
 def _norm(v):
@@ -1250,15 +1250,22 @@ def export_data(request):
         return JsonResponse({'error': 'project_ids is required'}, status=400)
 
     requested_ids = [str(x) for x in project_ids]
-    scoped = _projects_qs_for_actor(actor).filter(id__in=requested_ids)
-    allowed_ids = set()
-    for p in scoped:
-        if can_view_project(actor, p):
-            allowed_ids.add(str(p.id))
+    scoped = list(_projects_qs_for_actor(actor).filter(id__in=requested_ids))
+    allowed = [p for p in scoped if can_view_project(actor, p)]
+    allowed_ids = {str(p.id) for p in allowed}
 
     denied_ids = [pid for pid in requested_ids if pid not in allowed_ids]
     if denied_ids:
         return JsonResponse({'error': 'Access denied for one or more project_ids', 'denied_project_ids': denied_ids}, status=403)
 
-    # Delegate rendering/export formatting to legacy implementation after strict scope check.
-    return _v.export_data(request)
+    # Keep requested order
+    proj_by_id = {str(p.id): p for p in allowed}
+    ordered = [proj_by_id[pid] for pid in requested_ids if pid in proj_by_id]
+
+    if not ordered:
+        return JsonResponse({'error': 'No projects found for given IDs'}, status=404)
+
+    audit_log(request, actor, action='project.export', entity_type='project', entity_id='export',
+              metadata={'project_ids': requested_ids, 'format': payload.get('format', 'xlsx')})
+
+    return _render_export(ordered, payload)
