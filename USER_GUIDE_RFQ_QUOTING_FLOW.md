@@ -72,6 +72,6 @@ Use for bulk scenarios:
 ---
 
 ## 7) Next documentation upgrades
-- Add screenshots per step
-- Add role-specific guide (Buyer / Manager / Supplier)
-- Add troubleshooting FAQ (common import and submit errors)
+- [ ] Add screenshots per step
+- [x] Add role-specific guide (Buyer / Manager / Supplier) — see [docs/guides/](docs/guides/)
+- [x] Add troubleshooting FAQ — see [docs/FAQ.md](docs/FAQ.md)
