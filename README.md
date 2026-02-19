@@ -30,4 +30,13 @@ Open:
 - `POST /api/projects/reset` -> delete all server projects
 
 ## Notes
-- For simplicity the API is CSRF-exempt in this package. If you want CSRF protection, tell me and I’ll switch the JS to send CSRF token.
+- CSRF protection is enabled. API endpoints use session-based auth with CSRF tokens.
+
+## Documentation
+- [Buyer Guide](docs/guides/BUYER_GUIDE.md) — Creating RFQs, managing items, price comparison
+- [Manager / Admin Guide](docs/guides/MANAGER_ADMIN_GUIDE.md) — Users, roles, companies, audit
+- [Supplier Guide](docs/guides/SUPPLIER_GUIDE.md) — Portal access, submitting quotes
+- [System Admin Guide](docs/guides/SYSTEM_ADMIN_GUIDE.md) — Deployment, backup, security
+- [FAQ](docs/FAQ.md) — Common questions and troubleshooting
+- [User Guide: Quoting Flow](USER_GUIDE_RFQ_QUOTING_FLOW.md) — Step-by-step quoting process
+- [Runbook](RUNBOOK.md) — Quick setup and smoke tests
