@@ -502,19 +502,20 @@
         <span class="portal-topbar-spacer"></span>
         <div class="portal-topbar-info">
             <div>
-                <span class="tb-label">Date &amp; Time</span>
+                <span class="tb-label" data-i18n="portal_date_time">Date &amp; Time</span>
                 <span class="tb-value" id="topbar-clock">--</span>
             </div>
             {% if access.valid_until %}
             <div class="portal-countdown" id="topbar-countdown-wrap">
-                <span class="tb-label">Due In</span>
+                <span class="tb-label" data-i18n="portal_due_in">Due In</span>
                 <span class="tb-value" id="topbar-countdown">--</span>
             </div>
             {% endif %}
             <div>
-                <span class="tb-label">Supplier</span>
+                <span class="tb-label" data-i18n="portal_supplier">Supplier</span>
                 <span class="tb-value">{{ access.supplier_name }}</span>
             </div>
+            <select id="portal-lang-select" style="font-size:11px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></select>
         </div>
     </div>
 
@@ -523,7 +524,7 @@
         <!-- HEADER -->
         <header class="header">
             <div class="brand">
-                <h1>Quote Request</h1>
+                <h1 data-i18n="portal_quote_request">Quote Request</h1>
                 <span class="round-badge">Round {{ access.round|default:"1" }}</span>
             </div>
             <div class="supplier-center">
@@ -587,7 +588,7 @@
 
             <!-- PROJECT DETAILS -->
             <div class="card">
-                <h2 style="justify-content:space-between;">Project Information
+                <h2 style="justify-content:space-between;"><span data-i18n="portal_project_info">Project Information</span>
                     <div class="export-dropdown-wrap">
                         <button type="button" class="btn-ghost" onclick="toggleExportMenu()" style="padding:5px 12px; font-size:12px;">
                             &#128196; Export &#9662;
@@ -636,7 +637,7 @@
 
             <!-- QUOTE DETAILS -->
             <div class="card">
-                <h2>Quote Details</h2>
+                <h2 data-i18n="portal_quote_details">Quote Details</h2>
                 <div class="meta-grid" style="grid-template-columns: repeat(4, 1fr);">
                     <div class="meta-item">
                         <label>Currency</label>
@@ -1642,6 +1643,25 @@
                 btn.innerText = 'Request Re-Opening';
             }
         }
+    </script>
+    <script>
+    // ===== Mini i18n for Supplier Portal =====
+    (function(){
+      var LS='rfq_language',S=['en','cs','de'],L={en:'English',cs:'Čeština',de:'Deutsch'};
+      var d={
+        en:{portal_date_time:'Date & Time',portal_due_in:'Due In',portal_supplier:'Supplier',portal_quote_request:'Quote Request',portal_project_info:'Project Information',portal_quote_details:'Quote Details'},
+        cs:{portal_date_time:'Datum a čas',portal_due_in:'Zbývá',portal_supplier:'Dodavatel',portal_quote_request:'Žádost o nabídku',portal_project_info:'Informace o projektu',portal_quote_details:'Detaily nabídky'},
+        de:{portal_date_time:'Datum & Uhrzeit',portal_due_in:'Verbleibend',portal_supplier:'Lieferant',portal_quote_request:'Angebotsanfrage',portal_project_info:'Projektinformationen',portal_quote_details:'Angebotsdetails'}
+      };
+      var c=localStorage.getItem(LS)||'en';if(S.indexOf(c)===-1)c='en';
+      document.documentElement.lang=c;
+      function apply(lang){var dd=d[lang]||d.en;document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(dd[k])el.textContent=dd[k];});}
+      var sel=document.getElementById('portal-lang-select');
+      if(sel){S.forEach(function(l){var o=document.createElement('option');o.value=l;o.textContent=L[l];if(l===c)o.selected=true;sel.appendChild(o);});
+        sel.addEventListener('change',function(){c=sel.value;localStorage.setItem(LS,c);document.documentElement.lang=c;apply(c);});
+      }
+      apply(c);
+    })();
     </script>
 </body>
 

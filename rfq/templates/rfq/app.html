@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,6 +17,9 @@
   <!-- External libs (Dashboard charts + Excel import/export) -->
   <script src="{% static 'rfq/chart.umd.min.js' %}"></script>
   <script src="{% static 'rfq/xlsx.full.min.js' %}"></script>
+
+  <!-- i18n (must load before app) -->
+  <script src="{% static 'rfq/rfq_i18n.js' %}?v={{ build_version }}"></script>
 
   <!-- App data + app -->
   <script src="{% static 'rfq/rfq_data.js' %}?v={{ build_version }}"></script>

@@ -24,56 +24,56 @@ window.SystemApps.rfq = {
   <div class="project-card">
     <div class="project-tabs" role="tablist" aria-label="Project tabs">
             <!-- 1. Main - Blue -->
-            <button id="nav-main" class="tab tab-main" type="button" data-color="#3b82f6">📊 Main</button>
+            <button id="nav-main" class="tab tab-main" type="button" data-color="#3b82f6">📊 <span data-i18n="nav_main">Main</span></button>
 
             <!-- 2. Global dropdown - Cyan -->
             <div class="nav-dropdown" id="nav-dropdown-global">
-                <button class="tab nav-dropdown-btn tab-global" type="button" data-color="#06b6d4">🌐 Global ▾</button>
+                <button class="tab nav-dropdown-btn tab-global" type="button" data-color="#06b6d4">🌐 <span data-i18n="nav_global">Global</span> ▾</button>
                 <div class="nav-dropdown-menu">
-                    <button id="nav-supplier-list" class="nav-dropdown-item" type="button">Supplier List</button>
-                    <button id="nav-database" class="nav-dropdown-item" type="button">Database</button>
-                    <button id="nav-quotes" class="nav-dropdown-item" type="button">💰 Quotes</button>
-                    <button id="nav-doc-manager" class="nav-dropdown-item" type="button">📂 Document Manager</button>
+                    <button id="nav-supplier-list" class="nav-dropdown-item" type="button" data-i18n="nav_supplier_list">Supplier List</button>
+                    <button id="nav-database" class="nav-dropdown-item" type="button" data-i18n="nav_database">Database</button>
+                    <button id="nav-quotes" class="nav-dropdown-item" type="button">💰 <span data-i18n="nav_quotes">Quotes</span></button>
+                    <button id="nav-doc-manager" class="nav-dropdown-item" type="button">📂 <span data-i18n="nav_doc_manager">Document Manager</span></button>
                 </div>
             </div>
 
             <!-- 3. Project selector - Indigo -->
             <div class="nav-project-separator"></div>
-            <button id="btn-open-project-picker" class="tab tab-project" type="button" data-color="#6366f1"><span class="nav-project-label">Project</span> <span id="topbar-project-name">Select...</span></button>
+            <button id="btn-open-project-picker" class="tab tab-project" type="button" data-color="#6366f1"><span class="nav-project-label" data-i18n="th_project">Project</span> <span id="topbar-project-name" data-i18n="nav_select">Select...</span></button>
 
             <!-- 4. Project-specific tabs (hidden until project selected) -->
             <div class="project-tabs-group">
                 <!-- Dashboard - Emerald -->
-                <button id="nav-dashboard" class="tab tab-dashboard" type="button" data-color="#10b981">📈 Dashboard</button>
+                <button id="nav-dashboard" class="tab tab-dashboard" type="button" data-color="#10b981">📈 <span data-i18n="nav_dashboard">Dashboard</span></button>
 
                 <!-- PROJECT DATA dropdown - Amber -->
                 <div class="nav-dropdown" id="nav-dropdown-project">
-                    <button class="tab nav-dropdown-btn tab-data" type="button" data-color="#f59e0b">📦 Project Data ▾</button>
+                    <button class="tab nav-dropdown-btn tab-data" type="button" data-color="#f59e0b">📦 <span data-i18n="nav_project_data">Project Data</span> ▾</button>
                     <div class="nav-dropdown-menu">
-                        <button id="nav-project-suppliers" class="nav-dropdown-item" type="button">Project Suppliers</button>
-                        <button id="nav-items" class="nav-dropdown-item" type="button">Items</button>
-                        <button id="nav-suppliers" class="nav-dropdown-item" type="button">Quote Add</button>
-                        <button id="nav-samepart" class="nav-dropdown-item" type="button">💰 Price Finder</button>
+                        <button id="nav-project-suppliers" class="nav-dropdown-item" type="button" data-i18n="nav_project_suppliers">Project Suppliers</button>
+                        <button id="nav-items" class="nav-dropdown-item" type="button" data-i18n="nav_items">Items</button>
+                        <button id="nav-suppliers" class="nav-dropdown-item" type="button" data-i18n="nav_quote_add">Quote Add</button>
+                        <button id="nav-samepart" class="nav-dropdown-item" type="button">💰 <span data-i18n="nav_price_finder">Price Finder</span></button>
                     </div>
                 </div>
 
                 <!-- Quoting Process - Purple -->
-                <button id="nav-quoting" class="tab tab-quoting" type="button" data-color="#8b5cf6">💼 Quoting Process</button>
+                <button id="nav-quoting" class="tab tab-quoting" type="button" data-color="#8b5cf6">💼 <span data-i18n="nav_quoting">Quoting Process</span></button>
             </div>
 
             <!-- 5. + New Project -->
-            <button id="nav-new-project" class="tab tab-new-project" type="button">+ New Project</button>
+            <button id="nav-new-project" class="tab tab-new-project" type="button" data-i18n="nav_new_project">+ New Project</button>
 
             <!-- Spacer pushes Settings to far right -->
             <div style="flex:1;"></div>
 
             <!-- 6. Settings dropdown - Rose (far right) -->
             <div class="nav-dropdown" id="nav-dropdown-settings">
-                <button class="tab nav-dropdown-btn tab-settings" type="button" data-color="#f43f5e">⚙️ Settings ▾</button>
+                <button class="tab nav-dropdown-btn tab-settings" type="button" data-color="#f43f5e">⚙️ <span data-i18n="nav_settings">Settings</span> ▾</button>
                 <div class="nav-dropdown-menu">
-                    <button id="nav-settings" class="nav-dropdown-item" type="button">Settings</button>
-                    <button id="nav-export" class="nav-dropdown-item" type="button">Export</button>
-                    <button id="nav-data" class="nav-dropdown-item" type="button">Data Manager</button>
+                    <button id="nav-settings" class="nav-dropdown-item" type="button" data-i18n="nav_settings">Settings</button>
+                    <button id="nav-export" class="nav-dropdown-item" type="button" data-i18n="nav_export">Export</button>
+                    <button id="nav-data" class="nav-dropdown-item" type="button" data-i18n="nav_data_manager">Data Manager</button>
                 </div>
             </div>
 </div>
@@ -87,20 +87,20 @@ window.SystemApps.rfq = {
         <!-- TOP HEADER BAR -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:16px;">
-                <div style="font-size:24px; font-weight:800;">📊 Global Overview</div>
+                <div style="font-size:24px; font-weight:800;">📊 <span data-i18n="main_global_overview">Global Overview</span></div>
                 <span id="main-recent" style="font-size:12px; color:#666; background:#f0f0f5; padding:4px 10px; border-radius:6px;">Last update: —</span>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-                <input type="text" id="main-filter" class="rfq-input" placeholder="Search projects..." style="width:180px; font-size:12px;">
+                <input type="text" id="main-filter" class="rfq-input" placeholder="Search projects..." data-i18n-placeholder="ph_search_projects" style="width:180px; font-size:12px;">
                 <select id="main-status-filter" class="rfq-input" style="font-size:12px;">
-                    <option value="">All Status</option>
-                    <option value="Created">Created</option>
-                    <option value="In process">In Process</option>
-                    <option value="Done">Done</option>
+                    <option value="" data-i18n="main_all_status">All Status</option>
+                    <option value="Created" data-i18n="status_created">Created</option>
+                    <option value="In process" data-i18n="status_in_process">In Process</option>
+                    <option value="Done" data-i18n="status_done">Done</option>
                 </select>
-                <button id="btn-main-edit-layout" class="btn-secondary" type="button" style="font-size:11px;">🎨 Edit Layout</button>
-                <button id="btn-main-refresh" class="btn-primary" type="button">↻ Refresh</button>
-                <button id="btn-main-new-project" class="btn-success" type="button">+ New Project</button>
+                <button id="btn-main-edit-layout" class="btn-secondary" type="button" style="font-size:11px;">🎨 <span data-i18n="btn_edit_layout">Edit Layout</span></button>
+                <button id="btn-main-refresh" class="btn-primary" type="button">↻ <span data-i18n="btn_refresh">Refresh</span></button>
+                <button id="btn-main-new-project" class="btn-success" type="button" data-i18n="nav_new_project">+ New Project</button>
             </div>
         </div>
 
@@ -110,7 +110,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Key Metrics -->
             <div class="main-box" data-box-id="main-kpis" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">📈 Key Metrics</span>
+                    <span class="main-box-title">📈 <span data-i18n="main_key_metrics">Key Metrics</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -123,13 +123,13 @@ window.SystemApps.rfq = {
                 </div>
                 <div class="main-box-content">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <div class="sd-kpi"><div class="sd-kpi-l">Projects</div><div class="sd-kpi-v" id="main-kpi-projects">0</div></div>
-                        <div class="sd-kpi"><div class="sd-kpi-l">Items</div><div class="sd-kpi-v" id="main-kpi-items">0</div></div>
-                        <div class="sd-kpi"><div class="sd-kpi-l">Suppliers</div><div class="sd-kpi-v" id="main-kpi-suppliers">0</div></div>
-                        <div class="sd-kpi"><div class="sd-kpi-l">RFQ Bundles</div><div class="sd-kpi-v" id="main-kpi-open-bundles">0</div></div>
+                        <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_projects">Projects</div><div class="sd-kpi-v" id="main-kpi-projects">0</div></div>
+                        <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_items">Items</div><div class="sd-kpi-v" id="main-kpi-items">0</div></div>
+                        <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_suppliers">Suppliers</div><div class="sd-kpi-v" id="main-kpi-suppliers">0</div></div>
+                        <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_bundles">RFQ Bundles</div><div class="sd-kpi-v" id="main-kpi-open-bundles">0</div></div>
                     </div>
                     <div class="sd-kpi" style="margin-top:10px; background:linear-gradient(135deg,#dcfce7,#bbf7d0); border:1px solid #22c55e;">
-                        <div class="sd-kpi-l" style="color:#166534;">Total Value (EUR)</div>
+                        <div class="sd-kpi-l" style="color:#166534;" data-i18n="main_kpi_total_value">Total Value (EUR)</div>
                         <div class="sd-kpi-v" id="main-kpi-value" style="color:#16a34a; font-size:24px;">€0</div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Deadline Alerts -->
             <div class="main-box" data-box-id="main-deadlines" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">⏰ Deadline Alerts</span>
+                    <span class="main-box-title">⏰ <span data-i18n="main_deadline_alerts">Deadline Alerts</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -152,15 +152,15 @@ window.SystemApps.rfq = {
                 <div class="main-box-content">
                     <div style="display:flex; flex-direction:column; gap:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:linear-gradient(135deg,#fee2e2,#fecaca); border-radius:8px; border-left:4px solid #dc2626;">
-                            <span style="font-size:12px; font-weight:600; color:#991b1b;">🔴 Overdue</span>
+                            <span style="font-size:12px; font-weight:600; color:#991b1b;" data-i18n="main_overdue">🔴 Overdue</span>
                             <span id="main-overdue" style="font-size:20px; font-weight:800; color:#dc2626;">0</span>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:8px; border-left:4px solid #f59e0b;">
-                            <span style="font-size:12px; font-weight:600; color:#92400e;">🟡 Due 7 days</span>
+                            <span style="font-size:12px; font-weight:600; color:#92400e;" data-i18n="main_due_7">🟡 Due 7 days</span>
                             <span id="main-due-7" style="font-size:20px; font-weight:800; color:#d97706;">0</span>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-radius:8px; border-left:4px solid #3b82f6;">
-                            <span style="font-size:12px; font-weight:600; color:#1e40af;">🔵 Due 14 days</span>
+                            <span style="font-size:12px; font-weight:600; color:#1e40af;" data-i18n="main_due_14">🔵 Due 14 days</span>
                             <span id="main-due-soon" style="font-size:20px; font-weight:800; color:#2563eb;">0</span>
                         </div>
                     </div>
@@ -170,7 +170,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Project Status -->
             <div class="main-box" data-box-id="main-status" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">🚦 Project Status</span>
+                    <span class="main-box-title">🚦 <span data-i18n="main_project_status">Project Status</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -189,7 +189,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Quick Actions -->
             <div class="main-box" data-box-id="main-actions" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">⚡ Quick Actions</span>
+                    <span class="main-box-title">⚡ <span data-i18n="main_quick_actions">Quick Actions</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -202,13 +202,13 @@ window.SystemApps.rfq = {
                 </div>
                 <div class="main-box-content">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <button id="btn-main-export" class="btn-secondary" type="button" style="padding:12px 8px; font-size:11px;">📤 Export CSV</button>
-                        <button class="btn-secondary" type="button" onclick="switchView('database')" style="padding:12px 8px; font-size:11px;">🗄️ Database</button>
-                        <button class="btn-secondary" type="button" onclick="switchView('supplier-list')" style="padding:12px 8px; font-size:11px;">👥 Suppliers</button>
-                        <button class="btn-secondary" type="button" onclick="switchView('settings')" style="padding:12px 8px; font-size:11px;">⚙️ Settings</button>
+                        <button id="btn-main-export" class="btn-secondary" type="button" style="padding:12px 8px; font-size:11px;">📤 <span data-i18n="btn_export_csv">Export CSV</span></button>
+                        <button class="btn-secondary" type="button" onclick="switchView('database')" style="padding:12px 8px; font-size:11px;">🗄️ <span data-i18n="nav_database">Database</span></button>
+                        <button class="btn-secondary" type="button" onclick="switchView('supplier-list')" style="padding:12px 8px; font-size:11px;">👥 <span data-i18n="main_kpi_suppliers">Suppliers</span></button>
+                        <button class="btn-secondary" type="button" onclick="switchView('settings')" style="padding:12px 8px; font-size:11px;">⚙️ <span data-i18n="nav_settings">Settings</span></button>
                     </div>
                     <div style="margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb;">
-                        <div id="main-project-quick-open" style="font-size:11px; color:#64748b;">Select a project below to open</div>
+                        <div id="main-project-quick-open" style="font-size:11px; color:#64748b;" data-i18n="main_select_project_below">Select a project below to open</div>
                     </div>
                 </div>
             </div>
@@ -216,7 +216,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Projects Table (spans 3 columns) -->
             <div class="main-box" data-box-id="main-projects-table-box" data-col-span="3" data-row-span="1" style="grid-column:span 3;">
                 <div class="main-box-header">
-                    <span class="main-box-title">📁 All Projects</span>
+                    <span class="main-box-title">📁 <span data-i18n="main_all_projects">All Projects</span></span>
                     <div class="main-box-controls">
                         <span id="main-projects-count" style="font-size:11px; color:#64748b; margin-right:10px;">0 projects</span>
                         <span class="main-box-size-indicator">3×1</span>
@@ -232,16 +232,16 @@ window.SystemApps.rfq = {
                     <table class="main-projects-table draggable-table" id="main-projects-table">
                         <thead style="position:sticky; top:0; background:white; z-index:1;">
                             <tr>
-                                <th data-col-id="project" data-sortable="1" onclick="sortMainProjects('name')" style="min-width:180px; cursor:pointer;">Project</th>
-                                <th data-col-id="status" data-sortable="1" onclick="sortMainProjects('status')" style="width:90px; cursor:pointer;">Status</th>
-                                <th data-col-id="items" data-sortable="1" onclick="sortMainProjects('items')" style="width:50px; text-align:center; cursor:pointer;">Items</th>
-                                <th data-col-id="done" data-sortable="1" onclick="sortMainProjects('done')" style="width:50px; text-align:center; cursor:pointer;">Done</th>
-                                <th data-col-id="issue" data-sortable="1" onclick="sortMainProjects('issue')" style="width:50px; text-align:center; cursor:pointer;">Issue</th>
-                                <th data-col-id="received" data-sortable="1" onclick="sortMainProjects('received')" style="width:90px; cursor:pointer;">Received</th>
-                                <th data-col-id="deadline" data-sortable="1" onclick="sortMainProjects('deadline')" style="width:90px; cursor:pointer;">Deadline</th>
-                                <th data-col-id="sent" data-sortable="1" onclick="sortMainProjects('sent')" style="width:90px; cursor:pointer;">Sent</th>
-                                <th data-col-id="sent_to" style="width:100px;">Sent To</th>
-                                <th data-col-id="actions" style="width:140px; text-align:center;">Actions</th>
+                                <th data-col-id="project" data-sortable="1" onclick="sortMainProjects('name')" style="min-width:180px; cursor:pointer;" data-i18n="th_project">Project</th>
+                                <th data-col-id="status" data-sortable="1" onclick="sortMainProjects('status')" style="width:90px; cursor:pointer;" data-i18n="th_status">Status</th>
+                                <th data-col-id="items" data-sortable="1" onclick="sortMainProjects('items')" style="width:50px; text-align:center; cursor:pointer;" data-i18n="th_items">Items</th>
+                                <th data-col-id="done" data-sortable="1" onclick="sortMainProjects('done')" style="width:50px; text-align:center; cursor:pointer;" data-i18n="th_done">Done</th>
+                                <th data-col-id="issue" data-sortable="1" onclick="sortMainProjects('issue')" style="width:50px; text-align:center; cursor:pointer;" data-i18n="th_issue">Issue</th>
+                                <th data-col-id="received" data-sortable="1" onclick="sortMainProjects('received')" style="width:90px; cursor:pointer;" data-i18n="th_received">Received</th>
+                                <th data-col-id="deadline" data-sortable="1" onclick="sortMainProjects('deadline')" style="width:90px; cursor:pointer;" data-i18n="th_deadline">Deadline</th>
+                                <th data-col-id="sent" data-sortable="1" onclick="sortMainProjects('sent')" style="width:90px; cursor:pointer;" data-i18n="th_sent">Sent</th>
+                                <th data-col-id="sent_to" style="width:100px;" data-i18n="th_sent_to">Sent To</th>
+                                <th data-col-id="actions" style="width:140px; text-align:center;" data-i18n="th_actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="main-projects-tbody"></tbody>
@@ -252,7 +252,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Upcoming Deadlines (countdown style) -->
             <div class="main-box" data-box-id="main-countdown" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">📅 Upcoming Deadlines</span>
+                    <span class="main-box-title">📅 <span data-i18n="main_upcoming_deadlines">Upcoming Deadlines</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -271,7 +271,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Top Suppliers -->
             <div class="main-box" data-box-id="main-top-suppliers" data-col-span="2" data-row-span="1" style="grid-column:span 2;">
                 <div class="main-box-header">
-                    <span class="main-box-title">🏭 Top Suppliers</span>
+                    <span class="main-box-title">🏭 <span data-i18n="main_top_suppliers">Top Suppliers</span></span>
                     <div class="main-box-controls">
                         <select id="main-supplier-sort" class="rfq-input" style="font-size:10px; padding:2px 6px;">
                             <option value="value">By Value</option>
@@ -298,7 +298,7 @@ window.SystemApps.rfq = {
             <!-- BOX: Value by Project Chart -->
             <div class="main-box" data-box-id="main-value-chart" data-col-span="1" data-row-span="1">
                 <div class="main-box-header">
-                    <span class="main-box-title">💰 Value Distribution</span>
+                    <span class="main-box-title">💰 <span data-i18n="main_value_distribution">Value Distribution</span></span>
                     <div class="main-box-controls">
                         <span class="main-box-size-indicator">1×1</span>
                         <button class="main-box-btn" data-action="resize-smaller" title="Width −">◀</button>
@@ -322,12 +322,12 @@ window.SystemApps.rfq = {
 <div id="view-data-manager" class="view-section hidden">
   <div class="detail-shell">
     <div class="detail-shell-header">
-      <div class="detail-shell-title">DATA – Storage & Backup</div>
+      <div class="detail-shell-title" data-i18n="data_storage_backup">DATA – Storage & Backup</div>
       <div class="detail-shell-actions">
-        <button id="btn-data-refresh" class="btn-secondary" type="button">Refresh</button>
-        <button id="btn-data-export-json" class="btn-secondary" type="button">Export Backup (JSON)</button>
-        <button id="btn-data-import-json" class="btn-secondary" type="button">Import / Restore</button>
-        <button id="btn-data-reset" class="btn-danger" type="button">Reset RFQ Data</button>
+        <button id="btn-data-refresh" class="btn-secondary" type="button" data-i18n="btn_refresh">Refresh</button>
+        <button id="btn-data-export-json" class="btn-secondary" type="button" data-i18n="settings_export_json">Export Backup (JSON)</button>
+        <button id="btn-data-import-json" class="btn-secondary" type="button" data-i18n="settings_import_json">Import / Restore</button>
+        <button id="btn-data-reset" class="btn-danger" type="button" data-i18n="main_reset_rfq_data">Reset RFQ Data</button>
       </div>
     </div>
     <div class="detail-shell-body">
@@ -382,7 +382,7 @@ window.SystemApps.rfq = {
     <!-- TOP HEADER BAR -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-shrink:0;">
       <div style="display:flex; align-items:center; gap:16px;">
-        <button id="btn-projdetail-back" class="btn-secondary" type="button">← Back</button>
+        <button id="btn-projdetail-back" class="btn-secondary" type="button">← <span data-i18n="nav_back">Back</span></button>
         <div style="display:flex; align-items:center; gap:12px;">
           <div style="width:50px; height:50px; background:#f0f0f5; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
             <img id="projdetail-cover-img" src="" alt="" style="max-width:100%; max-height:100%; display:none;">
@@ -396,9 +396,9 @@ window.SystemApps.rfq = {
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
         <select id="projdetail-status" class="rfq-input" style="min-width:150px;"></select>
-        <button id="btn-projdetail-mark-won" class="btn-success" style="padding:8px 16px;">🏆 Mark as Won</button>
-        <button id="btn-projdetail-mark-done" class="btn-primary" style="padding:8px 16px;">✅ All Set</button>
-        <button id="btn-projdetail-edit" class="btn-secondary" type="button">Edit Project</button>
+        <button id="btn-projdetail-mark-won" class="btn-success" style="padding:8px 16px;">🏆 <span data-i18n="btn_mark_won">Mark as Won</span></button>
+        <button id="btn-projdetail-mark-done" class="btn-primary" style="padding:8px 16px;">✅ <span data-i18n="btn_all_set">All Set</span></button>
+        <button id="btn-projdetail-edit" class="btn-secondary" type="button" data-i18n="btn_edit_project">Edit Project</button>
       </div>
     </div>
 
@@ -408,31 +408,31 @@ window.SystemApps.rfq = {
       <div style="width:280px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; overflow-y:auto; min-height:0;">
         <!-- Main KPIs -->
         <div class="sd-card" style="padding:16px;">
-          <div class="sd-card-title">Project Overview</div>
+          <div class="sd-card-title" data-i18n="projdetail_overview">Project Overview</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="sd-kpi"><div class="sd-kpi-l">Items</div><div class="sd-kpi-v" id="projdetail-kpi-items">0</div></div>
-            <div class="sd-kpi"><div class="sd-kpi-l">Suppliers</div><div class="sd-kpi-v" id="projdetail-kpi-suppliers">0</div></div>
-            <div class="sd-kpi"><div class="sd-kpi-l">With Quotes</div><div class="sd-kpi-v" id="projdetail-kpi-quoted" style="color:#28a745;">0</div></div>
-            <div class="sd-kpi"><div class="sd-kpi-l">Pending</div><div class="sd-kpi-v" id="projdetail-kpi-pending" style="color:#fd7e14;">0</div></div>
+            <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_items">Items</div><div class="sd-kpi-v" id="projdetail-kpi-items">0</div></div>
+            <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_suppliers">Suppliers</div><div class="sd-kpi-v" id="projdetail-kpi-suppliers">0</div></div>
+            <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="projdetail_with_quotes">With Quotes</div><div class="sd-kpi-v" id="projdetail-kpi-quoted" style="color:#28a745;">0</div></div>
+            <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="projdetail_pending">Pending</div><div class="sd-kpi-v" id="projdetail-kpi-pending" style="color:#fd7e14;">0</div></div>
           </div>
           <div style="border-top:1px solid #e0e0e0; margin-top:12px; padding-top:12px;">
-            <div class="sd-kpi"><div class="sd-kpi-l">Total Value (EUR)</div><div class="sd-kpi-v" id="projdetail-kpi-value" style="color:#28a745; font-size:18px;">€0</div></div>
-            <div class="sd-kpi" style="margin-top:8px;"><div class="sd-kpi-l">Target Value (EUR)</div><div class="sd-kpi-v" id="projdetail-kpi-target" style="color:#667eea; font-size:16px;">€0</div></div>
-            <div class="sd-kpi" style="margin-top:8px;"><div class="sd-kpi-l">Savings Potential</div><div class="sd-kpi-v" id="projdetail-kpi-savings" style="font-size:14px;">€0</div></div>
+            <div class="sd-kpi"><div class="sd-kpi-l" data-i18n="main_kpi_total_value">Total Value (EUR)</div><div class="sd-kpi-v" id="projdetail-kpi-value" style="color:#28a745; font-size:18px;">€0</div></div>
+            <div class="sd-kpi" style="margin-top:8px;"><div class="sd-kpi-l" data-i18n="projdetail_target_value">Target Value (EUR)</div><div class="sd-kpi-v" id="projdetail-kpi-target" style="color:#667eea; font-size:16px;">€0</div></div>
+            <div class="sd-kpi" style="margin-top:8px;"><div class="sd-kpi-l" data-i18n="projdetail_savings">Savings Potential</div><div class="sd-kpi-v" id="projdetail-kpi-savings" style="font-size:14px;">€0</div></div>
           </div>
         </div>
 
         <!-- Timeline / Key Dates -->
         <div class="sd-card" style="padding:16px;">
-          <div class="sd-card-title">Timeline</div>
+          <div class="sd-card-title" data-i18n="projdetail_timeline">Timeline</div>
           <div style="font-size:12px; display:flex; flex-direction:column; gap:8px;">
-            <div style="display:flex; justify-content:space-between;"><span style="color:#666;">Created:</span><span id="projdetail-created" style="font-weight:600;">—</span></div>
-            <div style="display:flex; justify-content:space-between;"><span style="color:#666;">Received:</span><span id="projdetail-received" style="font-weight:600;">—</span></div>
-            <div style="display:flex; justify-content:space-between;"><span style="color:#666;">BOM:</span><span id="projdetail-bom" style="font-weight:600;">—</span></div>
-            <div style="display:flex; justify-content:space-between;"><span style="color:#666;">Sent:</span><span id="projdetail-sent" style="font-weight:600;">—</span></div>
-            <div style="display:flex; justify-content:space-between;"><span style="color:#666;">Sent to:</span><span id="projdetail-sentto" style="font-weight:600;">—</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#666;" data-i18n="label_created">Created:</span><span id="projdetail-created" style="font-weight:600;">—</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#666;" data-i18n="label_received">Received:</span><span id="projdetail-received" style="font-weight:600;">—</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#666;" data-i18n="label_bom">BOM:</span><span id="projdetail-bom" style="font-weight:600;">—</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#666;" data-i18n="label_sent">Sent:</span><span id="projdetail-sent" style="font-weight:600;">—</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#666;" data-i18n="label_sent_to">Sent to:</span><span id="projdetail-sentto" style="font-weight:600;">—</span></div>
             <div id="projdetail-deadline-row" style="display:flex; justify-content:space-between; padding:8px; margin-top:4px; background:#fff3cd; border-radius:6px;">
-              <span style="color:#856404; font-weight:600;">Deadline:</span>
+              <span style="color:#856404; font-weight:600;" data-i18n="label_deadline">Deadline:</span>
               <span id="projdetail-deadline" style="font-weight:700;">—</span>
             </div>
           </div>
@@ -440,17 +440,17 @@ window.SystemApps.rfq = {
 
         <!-- Items by Status -->
         <div class="sd-card" style="padding:16px;">
-          <div class="sd-card-title">Items by Status</div>
+          <div class="sd-card-title" data-i18n="projdetail_items_by_status">Items by Status</div>
           <div id="projdetail-status-breakdown" style="font-size:12px;"></div>
         </div>
 
         <!-- Quick Actions -->
         <div class="sd-card" style="padding:16px;">
-          <div class="sd-card-title">Quick Actions</div>
+          <div class="sd-card-title" data-i18n="main_quick_actions">Quick Actions</div>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            <button id="btn-projdetail-upload-cover" class="btn-secondary btn-sm" type="button">📷 Set Cover Photo</button>
-            <button id="btn-projdetail-goto-items" class="btn-secondary btn-sm" type="button">📋 View Items</button>
-            <button id="btn-projdetail-goto-quoting" class="btn-secondary btn-sm" type="button">💰 Price Comparison</button>
+            <button id="btn-projdetail-upload-cover" class="btn-secondary btn-sm" type="button">📷 <span data-i18n="btn_set_cover">Set Cover Photo</span></button>
+            <button id="btn-projdetail-goto-items" class="btn-secondary btn-sm" type="button">📋 <span data-i18n="btn_view_items">View Items</span></button>
+            <button id="btn-projdetail-goto-quoting" class="btn-secondary btn-sm" type="button">💰 <span data-i18n="nav_price_comparison">Price Comparison</span></button>
           </div>
         </div>
       </div>
@@ -459,13 +459,13 @@ window.SystemApps.rfq = {
       <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
         <!-- Tab Header -->
         <div class="sd-tabs" style="flex-shrink:0; display:flex; gap:4px; border-bottom:2px solid #e0e0e0; padding-bottom:0;">
-          <button class="sd-tab active" data-tab="overview">📊 Overview</button>
-          <button class="sd-tab" data-tab="suppliers">🏭 Suppliers</button>
-          <button class="sd-tab" data-tab="items-stats">📦 Items Stats</button>
-          <button class="sd-tab" data-tab="pricing">💵 Pricing</button>
-          <button class="sd-tab" data-tab="files">📎 Files & Links</button>
-          <button class="sd-tab" data-tab="notes">📝 Notes</button>
-          <button class="sd-tab" data-tab="exports">📤 Exports</button>
+          <button class="sd-tab active" data-tab="overview">📊 <span data-i18n="tab_overview">Overview</span></button>
+          <button class="sd-tab" data-tab="suppliers">🏭 <span data-i18n="main_kpi_suppliers">Suppliers</span></button>
+          <button class="sd-tab" data-tab="items-stats">📦 <span data-i18n="tab_items_stats">Items Stats</span></button>
+          <button class="sd-tab" data-tab="pricing">💵 <span data-i18n="tab_pricing">Pricing</span></button>
+          <button class="sd-tab" data-tab="files">📎 <span data-i18n="tab_files">Files & Links</span></button>
+          <button class="sd-tab" data-tab="notes">📝 <span data-i18n="tab_notes">Notes</span></button>
+          <button class="sd-tab" data-tab="exports">📤 <span data-i18n="tab_exports">Exports</span></button>
         </div>
 
         <!-- Tab Panels -->
@@ -944,20 +944,20 @@ window.SystemApps.rfq = {
 
                             <!-- Bulk Action Bar (Floating) -->
                             <div id="bulk-action-bar" class="hidden" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100;">
-                                <div style="font-weight: 600; font-size: 13px;"><span id="bulk-count">0</span> Selected</div>
+                                <div style="font-weight: 600; font-size: 13px;"><span id="bulk-count">0</span> <span data-i18n="label_selected">Selected</span></div>
                                 <div style="height: 20px; width: 1px; background: rgba(255,255,255,0.2);"></div>
                                 <select id="bulk-status-select" class="rfq-input" style="background: rgba(255,255,255,0.1); border: none; color: white; width: 150px; padding: 4px 8px;">
-                                    <option value="">Change Status</option>
+                                    <option value="" data-i18n="label_change_status">Change Status</option>
                                     <!-- Options populated dynamically from getItemStatuses() -->
                                 </select>
-                                <button id="btn-bulk-export" class="btn-text" style="color: white; font-weight: 500;">📤 Export Selected</button>
-                                <button id="btn-bulk-delete" class="btn-text" style="color: #ff6b6b; font-weight: 500;">🗑️ Delete</button>
+                                <button id="btn-bulk-export" class="btn-text" style="color: white; font-weight: 500;">📤 <span data-i18n="btn_export_selected">Export Selected</span></button>
+                                <button id="btn-bulk-delete" class="btn-text" style="color: #ff6b6b; font-weight: 500;">🗑️ <span data-i18n="btn_delete">Delete</span></button>
                                 <button id="btn-bulk-clear" style="background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 4px;">&times;</button>
                             </div>
 
                             <div id="empty-state" class="empty-state">
                                 <div class="empty-icon">📁</div>
-                                <div>Select or create a project to view items</div>
+                                <div data-i18n="empty_select_project">Select or create a project to view items</div>
                             </div>
 
                             <div class="table-footer">
@@ -975,8 +975,8 @@ window.SystemApps.rfq = {
                                     <div id="item-detail-page-title" style="font-weight:700; color:#333;">Item Detail</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <button id="btn-item-detail-save" class="btn-success">Uložit</button>
-                                    <button id="btn-item-detail-save-back" class="btn-primary">Uložit & Back</button>
+                                    <button id="btn-item-detail-save" class="btn-success" data-i18n="btn_save">Save</button>
+                                    <button id="btn-item-detail-save-back" class="btn-primary" data-i18n="btn_save_back">Save & Back</button>
                                     <button id="btn-item-detail-delete" class="btn-danger">Delete</button>
                                 </div>
                             </div>
@@ -1141,40 +1141,40 @@ window.SystemApps.rfq = {
                         <div id="view-settings" class="view-section hidden">
                             <div class="detail-shell">
                                 <div class="detail-shell-header">
-                                    <div class="detail-shell-title">Settings</div>
+                                    <div class="detail-shell-title" data-i18n="settings_title">Settings</div>
                                     <div class="detail-shell-actions">
-                                        <button id="btn-settings-save" class="btn-primary" type="button">Save Settings</button>
-                                        <button id="btn-settings-reset" class="btn-secondary" type="button">Reset to Defaults</button>
+                                        <button id="btn-settings-save" class="btn-primary" type="button" data-i18n="settings_save">Save Settings</button>
+                                        <button id="btn-settings-reset" class="btn-secondary" type="button" data-i18n="settings_reset">Reset to Defaults</button>
                                     </div>
                                 </div>
                                 <div class="detail-shell-body" style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                     <!-- Currency Settings -->
                                     <div class="sd-card">
-                                        <div class="sd-card-title">Currency Exchange Rates</div>
-                                        <div style="font-size: 11px; color: #666; margin-bottom: 12px;">
+                                        <div class="sd-card-title" data-i18n="settings_currency_title">Currency Exchange Rates</div>
+                                        <div style="font-size: 11px; color: #666; margin-bottom: 12px;" data-i18n="settings_currency_desc">
                                             Rate = how many EUR for 1 unit of currency.
                                         </div>
                                         <div id="settings-currency-rates" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                         </div>
                                         <div class="form-row" style="margin-top: 16px;">
-                                            <label>Decimal Places</label>
+                                            <label data-i18n="settings_decimals">Decimal Places</label>
                                             <select id="settings-currency-decimals" class="rfq-input">
-                                                <option value="2">2 decimals</option>
-                                                <option value="3">3 decimals</option>
-                                                <option value="4" selected>4 decimals</option>
+                                                <option value="2" data-i18n="settings_decimals_2">2 decimals</option>
+                                                <option value="3" data-i18n="settings_decimals_3">3 decimals</option>
+                                                <option value="4" selected data-i18n="settings_decimals_4">4 decimals</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <!-- Data Management -->
                                     <div class="sd-card">
-                                        <div class="sd-card-title">Data Management</div>
+                                        <div class="sd-card-title" data-i18n="settings_data_title">Data Management</div>
                                         <div style="display: flex; flex-direction: column; gap: 10px;">
-                                            <button id="btn-settings-export-json" class="btn-secondary" type="button" style="width: 100%;">Export Backup (JSON)</button>
-                                            <button id="btn-settings-import-json" class="btn-secondary" type="button" style="width: 100%;">Import / Restore</button>
-                                            <button id="btn-settings-reset-data" class="btn-danger" type="button" style="width: 100%;">Reset All Data</button>
+                                            <button id="btn-settings-export-json" class="btn-secondary" type="button" style="width: 100%;" data-i18n="settings_export_json">Export Backup (JSON)</button>
+                                            <button id="btn-settings-import-json" class="btn-secondary" type="button" style="width: 100%;" data-i18n="settings_import_json">Import / Restore</button>
+                                            <button id="btn-settings-reset-data" class="btn-danger" type="button" style="width: 100%;" data-i18n="settings_reset_data">Reset All Data</button>
                                         </div>
-                                        <div style="font-size: 11px; color: #888; margin-top: 12px; line-height: 1.5;">
+                                        <div style="font-size: 11px; color: #888; margin-top: 12px; line-height: 1.5;" data-i18n="settings_data_desc">
                                             Data is saved locally in your browser. Use Export to backup or move data to another device.
                                         </div>
                                         <div id="settings-storage-info" style="margin-top: 12px; padding: 10px; background: #f5f5f7; border-radius: 6px; font-size: 11px;">
@@ -1183,21 +1183,33 @@ window.SystemApps.rfq = {
                                     </div>
                                 </div>
 
+                                <!-- Language Settings (full width row) -->
+                                <div style="padding: 0 20px 20px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div class="sd-card" id="settings-language-card">
+                                        <div class="sd-card-title" data-i18n="settings_language_title">Language</div>
+                                        <div style="font-size: 11px; color: #666; margin-bottom: 12px;" data-i18n="settings_language_desc">Choose the display language for the application.</div>
+                                        <div class="form-row">
+                                            <label data-i18n="settings_language_label">Interface Language</label>
+                                            <select id="settings-language-select" class="rfq-input" style="width:200px;"></select>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Status Management Section (half width) -->
                                 <div style="padding: 0 20px 20px 20px;">
                                     <div class="sd-card" style="width: 50%; min-width: 400px;">
-                                        <div class="sd-card-title">Status Management</div>
+                                        <div class="sd-card-title" data-i18n="settings_status_title">Status Management</div>
                                         <div style="font-size: 11px; color: #666; margin-bottom: 12px;">
-                                            Customize status options used throughout the application. Drag to reorder, click color to change.
+                                            <span data-i18n="settings_status_desc">Customize status options used throughout the application. Drag to reorder, click color to change.</span>
                                         </div>
 
                                         <!-- Status Type Tabs -->
                                         <div id="status-tabs" style="display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap;">
-                                            <button class="status-tab active" data-status-type="item" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #007AFF; color: white; cursor: pointer; font-size: 12px;">Item Statuses</button>
-                                            <button class="status-tab" data-status-type="batch" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;">Batch Statuses</button>
-                                            <button class="status-tab" data-status-type="supplierQuote" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;">Supplier Quote</button>
-                                            <button class="status-tab" data-status-type="planner" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;">Planner</button>
-                                            <button class="status-tab" data-status-type="project" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;">Project</button>
+                                            <button class="status-tab active" data-status-type="item" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #007AFF; color: white; cursor: pointer; font-size: 12px;" data-i18n="settings_status_item">Item Statuses</button>
+                                            <button class="status-tab" data-status-type="batch" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;" data-i18n="settings_status_batch">Batch Statuses</button>
+                                            <button class="status-tab" data-status-type="supplierQuote" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;" data-i18n="settings_status_supplier_quote">Supplier Quote</button>
+                                            <button class="status-tab" data-status-type="planner" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;" data-i18n="settings_status_planner">Planner</button>
+                                            <button class="status-tab" data-status-type="project" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: #f5f5f7; color: #333; cursor: pointer; font-size: 12px;" data-i18n="settings_status_project">Project</button>
                                         </div>
 
                                         <!-- Status List Container -->
@@ -1207,8 +1219,8 @@ window.SystemApps.rfq = {
 
                                         <!-- Status Actions -->
                                         <div style="display: flex; gap: 10px; margin-top: 12px;">
-                                            <button id="btn-add-status" class="btn-secondary" type="button" style="flex: 1;">+ Add Status</button>
-                                            <button id="btn-reset-statuses" class="btn-danger" type="button" style="flex: 1;">Reset to Defaults</button>
+                                            <button id="btn-add-status" class="btn-secondary" type="button" style="flex: 1;" data-i18n="btn_add_status">+ Add Status</button>
+                                            <button id="btn-reset-statuses" class="btn-danger" type="button" style="flex: 1;" data-i18n="btn_reset_defaults">Reset to Defaults</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1219,7 +1231,7 @@ window.SystemApps.rfq = {
                         <div id="view-suppliers" class="view-section hidden">
                             <div class="toolbar">
                                 <div class="toolbar-left">
-                                    <div style="font-weight: 600; color: #333; font-size: 14px;">📦 Bulk Supplier Pricing</div>
+                                    <div style="font-weight: 600; color: #333; font-size: 14px;">📦 <span data-i18n="bulk_supplier_pricing">Bulk Supplier Pricing</span></div>
                                 </div>
                                 <div class="toolbar-right">
                                     <label style="font-size: 12px; font-weight: 600;">Select Supplier:</label>
@@ -1229,7 +1241,7 @@ window.SystemApps.rfq = {
                                     <button id="btn-add-new-supplier" class="btn-secondary" style="font-size: 11px;">+ New Supplier</button>
                                     <button id="btn-upload-bulk-quote" class="btn-secondary" style="font-size: 11px;" disabled title="Upload quote file (Excel/CSV/PDF). If Excel/CSV, it can import prices into the table.">⬆ Upload Quoting</button>
                                     <button id="btn-upload-multi-supplier" class="btn-secondary" style="font-size: 11px;" title="Upload pricing for multiple suppliers at once (Excel/CSV)">⬆ Multi-Supplier Upload</button>
-                                    <button id="btn-save-bulk-prices" class="btn-primary" disabled>💾 Uložit Bulk Prices</button>
+                                    <button id="btn-save-bulk-prices" class="btn-primary" disabled>💾 <span data-i18n="btn_save_bulk_prices">Save Bulk Prices</span></button>
                                 </div>
                             </div>
                             <div id="suppliers-content" style="flex: 1; overflow-y: auto; padding: 20px;">
@@ -1241,7 +1253,7 @@ window.SystemApps.rfq = {
                                 <div id="bulk-pricing-table-wrapper" class="hidden">
                                     <div style="margin-bottom: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; border: 1px solid #007AFF;">
                                         <div style="font-size: 13px; font-weight: 600; color: #007AFF; margin-bottom: 4px;">💡 Bulk Pricing Mode</div>
-                                        <div style="font-size: 12px; color: #666;">Enter prices for multiple items at once. Leave fields empty to keep existing values. Click "Uložit Bulk Prices" when done.</div>
+                                        <div style="font-size: 12px; color: #666;">Enter prices for multiple items at once. Leave fields empty to keep existing values. Click "Save Bulk Prices" when done.</div>
                                     </div>
                                     <div class="table-wrapper sd-table-wrap" style="overflow-x: auto;">
                                         <table id="table-bulk-pricing" class="rfq-table">
@@ -1329,8 +1341,8 @@ window.SystemApps.rfq = {
                                     <div id="supplier-detail-page-title" style="font-weight:700; color:#333;">Supplier Detail</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <button id="btn-supplier-detail-save" class="btn-success">Uložit</button>
-                                    <button id="btn-supplier-detail-save-back" class="btn-primary">Uložit & Back</button>
+                                    <button id="btn-supplier-detail-save" class="btn-success" data-i18n="btn_save">Save</button>
+                                    <button id="btn-supplier-detail-save-back" class="btn-primary" data-i18n="btn_save_back">Save & Back</button>
                                     <button id="btn-supplier-detail-delete" class="btn-danger">Delete</button>
                                 </div>
                             </div>
@@ -1346,9 +1358,9 @@ window.SystemApps.rfq = {
       <div id="bundle-detail-page-title" style="font-weight:700; color:#333;">RFQ Bundle</div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <button id="btn-bundle-detail-export" class="btn-secondary">Export CSV</button>
-      <button id="btn-bundle-detail-delete" class="btn-danger">Delete</button>
-      <button id="btn-bundle-detail-save" class="btn-success">Uložit</button>
+      <button id="btn-bundle-detail-export" class="btn-secondary" data-i18n="btn_export_csv">Export CSV</button>
+      <button id="btn-bundle-detail-delete" class="btn-danger" data-i18n="btn_delete">Delete</button>
+      <button id="btn-bundle-detail-save" class="btn-success" data-i18n="btn_save">Save</button>
     </div>
   </div>
   <div id="bundle-detail-page-body" class="rfq-scroll-page" style="padding:12px; background:#f5f5f7;">
@@ -2581,28 +2593,28 @@ window.SystemApps.rfq = {
                             </div>
                         </div>
                         <div class="modal-actions">
-                            <button id="btn-cancel-edit-project" class="btn-secondary">Zrušit</button>
-                            <button id="btn-save-edit-project" class="btn-primary">Uložit Changes</button>
+                            <button id="btn-cancel-edit-project" class="btn-secondary" data-i18n="btn_cancel">Cancel</button>
+                            <button id="btn-save-edit-project" class="btn-primary" data-i18n="btn_save_changes">Save Changes</button>
                         </div>
                     </div>
                 </div>
 
                 <div id="sheet-add-choice" class="modal-overlay hidden">
                     <div class="modal-content small text-center">
-                        <h3>Add Items</h3>
-                        <button id="btn-choice-manual" class="btn-primary full-width mb-10">Manual Entry</button>
-                        <button id="btn-choice-import" class="btn-success full-width">Import Excel</button>
+                        <h3 data-i18n="dialog_add_items">Add Items</h3>
+                        <button id="btn-choice-manual" class="btn-primary full-width mb-10" data-i18n="dialog_manual_entry">Manual Entry</button>
+                        <button id="btn-choice-import" class="btn-success full-width" data-i18n="btn_import_excel">Import Excel</button>
                     </div>
                 </div>
 
                 <div id="sheet-manual-entry" class="modal-overlay hidden">
                     <div class="modal-content large">
-                        <div class="modal-header">New Item</div>
+                        <div class="modal-header" data-i18n="dialog_new_item">New Item</div>
                         <div id="manual-entry-form" class="modal-body form-grid">
                             </div>
                         <div class="modal-footer">
-                            <button id="btn-cancel-manual" class="btn-secondary">Zrušit</button>
-                            <button id="btn-save-manual" class="btn-primary">Uložit Item</button>
+                            <button id="btn-cancel-manual" class="btn-secondary" data-i18n="btn_cancel">Cancel</button>
+                            <button id="btn-save-manual" class="btn-primary" data-i18n="btn_save_item">Save Item</button>
                         </div>
                     </div>
                 </div>
@@ -2614,16 +2626,16 @@ window.SystemApps.rfq = {
                             <div class="window-control minimize" style="opacity: 0.3; pointer-events: none;"></div>
                             <div class="window-control maximize" style="opacity: 0.3; pointer-events: none;"></div>
                         </div>
-                        <span class="detail-title">Item Details</span>
+                        <span class="detail-title" data-i18n="dialog_item_details">Item Details</span>
                     </div>
                     <div id="detail-content" class="detail-body">
                         </div>
                     <div class="detail-footer">
-                        <button id="btn-delete-detail" class="btn-danger">Delete</button>
+                        <button id="btn-delete-detail" class="btn-danger" data-i18n="btn_delete">Delete</button>
                         <div class="footer-actions">
-                            <button id="btn-cancel-detail-footer" class="btn-secondary">Close</button>
-                            <button id="btn-save-detail-no-close" class="btn-success" style="margin-right: 8px;">Uložit</button>
-                            <button id="btn-save-detail" class="btn-primary">Uložit & Close</button>
+                            <button id="btn-cancel-detail-footer" class="btn-secondary" data-i18n="btn_close">Close</button>
+                            <button id="btn-save-detail-no-close" class="btn-success" style="margin-right: 8px;" data-i18n="btn_save">Save</button>
+                            <button id="btn-save-detail" class="btn-primary" data-i18n="btn_save_close">Save & Close</button>
                         </div>
                     </div>
                 </div></div>
@@ -6633,6 +6645,27 @@ window.SystemApps.rfq = {
             return document.getElementById(id);
         };
 
+        // i18n helper — shortcut to window.RFQ_LANG.t()
+        const t = window.t || function(k) { return k; };
+
+        // Apply translations to all elements with data-i18n attribute
+        function applyI18nToPage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (key) el.textContent = t(key);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (key) el.placeholder = t(key);
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (key) el.title = t(key);
+            });
+            // Update <html lang>
+            document.documentElement.lang = window.RFQ_LANG ? window.RFQ_LANG.getLang() : 'en';
+        }
+
         // Global formatMoney function that uses settings for decimal places
         const formatMoney = (n, forceDecimals) => {
             const decimals = forceDecimals !== undefined ? forceDecimals :
@@ -10092,6 +10125,9 @@ window.SystemApps.rfq = {
 
             // Apply unified table behaviors for tables that exist in this view
             initUnifiedTablesForCurrentView(view);
+
+            // Apply i18n translations to static elements in the current view
+            applyI18nToPage();
         }
 
         function initUnifiedTablesForCurrentView(view) {
@@ -19900,8 +19936,8 @@ Best regards`)}</textarea>
                     }
 
                     showSuccessModal({
-                        title: 'Settings Saved',
-                        message: 'Your settings have been saved successfully.',
+                        title: t('toast_settings_saved'),
+                        message: t('toast_settings_saved_desc'),
                         icon: '⚙️',
                         iconColor: '#667eea'
                     });
@@ -19913,11 +19949,11 @@ Best regards`)}</textarea>
                 btnReset.dataset.bound = '1';
                 btnReset.addEventListener('click', async () => {
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Reset Settings',
-                        message: 'Reset all settings to defaults?',
+                        title: t('dialog_reset_settings'),
+                        message: t('dialog_reset_settings_msg'),
                         type: 'warning',
-                        okText: 'Reset',
-                        cancelText: 'Cancel'
+                        okText: t('btn_reset'),
+                        cancelText: t('btn_cancel')
                     });
                     if (!confirmed) return;
 
@@ -19937,8 +19973,8 @@ Best regards`)}</textarea>
                     // Re-render to show default values
                     renderSettings();
                     showSuccessModal({
-                        title: 'Settings Reset',
-                        message: 'All settings have been reset to default values.',
+                        title: t('dialog_reset_settings'),
+                        message: t('toast_settings_reset'),
                         icon: '🔄',
                         iconColor: '#f59e0b'
                     });
@@ -19990,7 +20026,7 @@ Best regards`)}</textarea>
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                     } catch (e) {
-                        showToast('Export failed: ' + e.message, 'error');
+                        showToast(t('toast_export_failed') + ': ' + e.message, 'error');
                     }
                 });
             }
@@ -20030,11 +20066,11 @@ Best regards`)}</textarea>
                         if (typeof updateProject === 'function') {
                             projects.forEach(p => updateProject(p));
                         }
-                        showToast(`Import complete: ${added} added, ${updated} updated`, 'success');
+                        showToast(t('toast_import_complete', added, updated), 'success');
                         renderSettings();
                         if (typeof renderMainOverview === 'function') renderMainOverview();
                     } catch (err) {
-                        showToast('Import failed: ' + err.message, 'error');
+                        showToast(t('toast_import_failed') + ': ' + err.message, 'error');
                     }
                     fileInput.value = '';
                 });
@@ -20045,19 +20081,19 @@ Best regards`)}</textarea>
                 btnResetData.dataset.bound = '1';
                 btnResetData.addEventListener('click', async () => {
                     const confirmed1 = await window.showConfirmDialog({
-                        title: 'Delete All Data',
-                        message: 'WARNING: This will delete ALL data. Are you sure?',
+                        title: t('dialog_delete_all_data'),
+                        message: t('dialog_delete_all_data_msg'),
                         type: 'danger',
-                        okText: 'Continue',
-                        cancelText: 'Cancel'
+                        okText: t('btn_continue'),
+                        cancelText: t('btn_cancel')
                     });
                     if (!confirmed1) return;
                     const confirmed2 = await window.showConfirmDialog({
-                        title: 'Final Confirmation',
-                        message: 'This cannot be undone. All your projects, items, and settings will be permanently deleted.',
+                        title: t('dialog_final_confirmation'),
+                        message: t('dialog_final_confirmation_msg'),
                         type: 'danger',
-                        okText: 'Delete Everything',
-                        cancelText: 'Cancel'
+                        okText: t('dialog_delete_everything'),
+                        cancelText: t('btn_cancel')
                     });
                     if (!confirmed2) return;
                     try {
@@ -20065,12 +20101,34 @@ Best regards`)}</textarea>
                             await window.RFQData.resetServer();
                         }
                         localStorage.clear();
-                        if (window.showToast) window.showToast('All data has been reset. Reloading…', 'success');
+                        if (window.showToast) window.showToast(t('toast_data_reset'), 'success');
                         setTimeout(() => location.reload(), 500);
                     } catch (e) {
-                        if (window.showToast) window.showToast('Reset failed: ' + e.message, 'error');
+                        if (window.showToast) window.showToast(t('toast_reset_failed') + ': ' + e.message, 'error');
                     }
                 });
+            }
+
+            // =========================================================
+            // Language selector
+            // =========================================================
+            const langSelect = getEl('settings-language-select');
+            if (langSelect) {
+                const labels = window.RFQ_LANG && window.RFQ_LANG.LANG_LABELS ? window.RFQ_LANG.LANG_LABELS : { en: 'English', cs: 'Čeština', de: 'Deutsch' };
+                const supported = window.RFQ_LANG && window.RFQ_LANG.SUPPORTED ? window.RFQ_LANG.SUPPORTED : ['en', 'cs', 'de'];
+                langSelect.innerHTML = supported.map(l => `<option value="${l}"${l === (window.RFQ_LANG ? window.RFQ_LANG.getLang() : 'en') ? ' selected' : ''}>${labels[l] || l}</option>`).join('');
+                if (!langSelect.dataset.bound) {
+                    langSelect.dataset.bound = '1';
+                    langSelect.addEventListener('change', () => {
+                        if (window.RFQ_LANG) {
+                            window.RFQ_LANG.setLang(langSelect.value);
+                            // Re-render the current view
+                            applyI18nToPage();
+                            renderSettings();
+                            showToast(t('toast_settings_saved'), 'success');
+                        }
+                    });
+                }
             }
 
             // =========================================================

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,89 +40,90 @@
   <div class="wrap">
     <div class="top">
       <div>
-        <h1>🛡️ Mega Admin Dashboard</h1>
-        <div class="muted">Interní administrace pro zaměstnance — firmy, uživatelé, locky, audit • Scope dat v RFQ app přepínáš v horním navbaru (All/Company)</div>
+        <h1>🛡️ <span data-i18n="admin_title">Mega Admin Dashboard</span></h1>
+        <div class="muted" data-i18n="admin_subtitle">Internal administration — companies, users, locks, audit</div>
       </div>
       <div class="controls">
         <div class="navmeta">
           <span id="mega-clock"></span>
           <span>👤 {{ request.user.username }}</span>
         </div>
-        <a href="/"><button>RFQ App</button></a>
-        <a href="/logout/?next=/login/"><button>Logout</button></a>
+        <select id="mega-lang-select" style="font-size:11px;padding:2px 6px;"></select>
+        <a href="/"><button data-i18n="misc_rfq_app">RFQ App</button></a>
+        <a href="/logout/?next=/login/"><button data-i18n="misc_logout">Logout</button></a>
       </div>
     </div>
 
     <div class="stats">
-      <div class="stat"><span class="muted">Companies</span><b id="sCompanies">0</b></div>
-      <div class="stat"><span class="muted">Users</span><b id="sUsers">0</b></div>
-      <div class="stat"><span class="muted">Active Locks</span><b id="sLocks">0</b></div>
-      <div class="stat"><span class="muted">Audit (loaded)</span><b id="sAudit">0</b></div>
+      <div class="stat"><span class="muted" data-i18n="admin_companies">Companies</span><b id="sCompanies">0</b></div>
+      <div class="stat"><span class="muted" data-i18n="admin_users">Users / Roles</span><b id="sUsers">0</b></div>
+      <div class="stat"><span class="muted" data-i18n="admin_locks">Active Locks</span><b id="sLocks">0</b></div>
+      <div class="stat"><span class="muted" data-i18n="admin_audit_loaded">Audit (loaded)</span><b id="sAudit">0</b></div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3>🏢 Companies</h3>
+        <h3>🏢 <span data-i18n="admin_companies">Companies</span></h3>
         <div class="controls">
-          <input id="cname" placeholder="Company name" />
-          <input id="cvat" placeholder="VAT" />
-          <input id="creg" placeholder="Registration No" />
-          <input id="caddr" placeholder="Address line 1" />
-          <input id="ccity" placeholder="City" />
-          <input id="czip" placeholder="Postal code" />
-          <input id="ccountry" placeholder="Country" />
-          <label class="muted"><input id="cactive" type="checkbox" checked /> active</label>
-          <button class="primary" id="cadd">Add / Update</button>
-          <button id="ccancel" style="display:none">Cancel edit</button>
+          <input id="cname" placeholder="Company name" data-i18n-ph="admin_company_name" />
+          <input id="cvat" placeholder="VAT" data-i18n-ph="admin_vat" />
+          <input id="creg" placeholder="Registration No" data-i18n-ph="admin_reg_no" />
+          <input id="caddr" placeholder="Address line 1" data-i18n-ph="admin_address" />
+          <input id="ccity" placeholder="City" data-i18n-ph="admin_city" />
+          <input id="czip" placeholder="Postal code" data-i18n-ph="admin_postal" />
+          <input id="ccountry" placeholder="Country" data-i18n-ph="admin_country" />
+          <label class="muted"><input id="cactive" type="checkbox" checked /> <span data-i18n="admin_active">active</span></label>
+          <button class="primary" id="cadd" data-i18n="admin_add_update">Add / Update</button>
+          <button id="ccancel" style="display:none" data-i18n="admin_cancel_edit">Cancel edit</button>
         </div>
-        <div class="muted" id="cedit" style="display:none">Editing company ID: <span id="ceditid"></span></div>
+        <div class="muted" id="cedit" style="display:none"><span data-i18n="admin_editing">Editing company ID:</span> <span id="ceditid"></span></div>
         <div id="companies" class="list"></div>
       </div>
 
       <div class="card">
-        <h3>👥 Users / Roles</h3>
+        <h3>👥 <span data-i18n="admin_users">Users / Roles</span></h3>
         <div class="controls">
           <input id="uname" placeholder="username" />
           <input id="uemail" placeholder="email" />
           <input id="upass" placeholder="password" type="password" />
-          <label class="muted"><input id="ushowpass" type="checkbox" /> show</label>
+          <label class="muted"><input id="ushowpass" type="checkbox" /> <span data-i18n="admin_show">show</span></label>
           <select id="urole"><option>viewer</option><option>editor</option><option>admin</option><option>superadmin</option></select>
           <select id="ucompany"></select>
-          <button class="primary" id="ucreate">Create user</button>
+          <button class="primary" id="ucreate" data-i18n="admin_create_user">Create user</button>
         </div>
         <div class="controls">
-          <select id="ucompany-filter"><option value="">All companies</option></select>
-          <input id="usearch" placeholder="Filter users (name/email/role/company)" />
-          <button id="urefresh">Refresh</button>
+          <select id="ucompany-filter"><option value="" data-i18n="admin_all_companies">All companies</option></select>
+          <input id="usearch" placeholder="Filter users (name/email/role/company)" data-i18n-ph="admin_filter_users" />
+          <button id="urefresh" data-i18n="btn_refresh">Refresh</button>
         </div>
         <div class="bulk-bar" id="ubulk-bar">
           <b id="ubulk-count">0</b> selected
-          <select id="ubulk-role"><option value="">Bulk role...</option><option>viewer</option><option>editor</option><option>admin</option></select>
-          <button id="ubulk-apply" class="primary">Apply Role</button>
-          <button id="ubulk-deactivate" class="warn">Deactivate</button>
-          <button id="ubulk-clear">Clear</button>
+          <select id="ubulk-role"><option value="" data-i18n="admin_bulk_role">Bulk role...</option><option>viewer</option><option>editor</option><option>admin</option></select>
+          <button id="ubulk-apply" class="primary" data-i18n="admin_apply_role">Apply Role</button>
+          <button id="ubulk-deactivate" class="warn" data-i18n="admin_bulk_deactivate">Deactivate</button>
+          <button id="ubulk-clear" data-i18n="btn_clear">Clear</button>
         </div>
         <div id="users" class="list"></div>
       </div>
 
       <div class="card">
-        <h3>🔒 Active Locks</h3>
+        <h3>🔒 <span data-i18n="admin_locks">Active Locks</span></h3>
         <div class="controls">
-          <button id="lrefresh">Refresh</button>
-          <button id="lbulk-unlock" class="warn" style="display:none">Unlock Selected (<span id="lbulk-count">0</span>)</button>
+          <button id="lrefresh" data-i18n="btn_refresh">Refresh</button>
+          <button id="lbulk-unlock" class="warn" style="display:none"><span data-i18n="admin_unlock_selected">Unlock Selected</span> (<span id="lbulk-count">0</span>)</button>
         </div>
         <div id="locks" class="list"></div>
       </div>
 
       <div class="card">
-        <h3>📜 Audit Logs</h3>
+        <h3>📜 <span data-i18n="admin_audit">Audit Logs</span></h3>
         <div class="controls">
-          <input id="af" placeholder="action filter" />
-          <input id="ef" placeholder="entity filter" />
-          <input id="actorf" placeholder="actor contains" />
+          <input id="af" placeholder="action filter" data-i18n-ph="admin_action_filter" />
+          <input id="ef" placeholder="entity filter" data-i18n-ph="admin_entity_filter" />
+          <input id="actorf" placeholder="actor contains" data-i18n-ph="admin_actor_filter" />
           <input type="date" id="adate-from" title="From date" />
           <input type="date" id="adate-to" title="To date" />
-          <button id="arefresh">Refresh</button>
+          <button id="arefresh" data-i18n="btn_refresh">Refresh</button>
         </div>
         <div id="audit" class="list"></div>
       </div>
@@ -477,6 +478,28 @@ updateMegaClock();
 setInterval(updateMegaClock, 1000);
 
 Promise.all([loadCompanies(), loadUsers(), loadLocks(), loadAudit()]).catch(e=>toast('Admin load failed: '+e.message,false));
+
+// ===== Mini i18n for Mega Admin =====
+(function(){
+  var LS='rfq_language', S=['en','cs','de'], L={en:'English',cs:'Čeština',de:'Deutsch'};
+  var d={
+    en:{admin_title:'Mega Admin Dashboard',admin_subtitle:'Internal administration — companies, users, locks, audit',admin_companies:'Companies',admin_users:'Users / Roles',admin_locks:'Active Locks',admin_audit:'Audit Logs',admin_audit_loaded:'Audit (loaded)',admin_add_update:'Add / Update',admin_cancel_edit:'Cancel edit',admin_editing:'Editing company ID:',admin_create_user:'Create user',admin_filter_users:'Filter users (name/email/role/company)',admin_all_companies:'All companies',admin_company_name:'Company name',admin_vat:'VAT',admin_reg_no:'Registration No',admin_address:'Address line 1',admin_city:'City',admin_postal:'Postal code',admin_country:'Country',admin_active:'active',admin_show:'show',admin_bulk_role:'Bulk role...',admin_apply_role:'Apply Role',admin_bulk_deactivate:'Deactivate',admin_unlock_selected:'Unlock Selected',admin_action_filter:'action filter',admin_entity_filter:'entity filter',admin_actor_filter:'actor contains',btn_refresh:'Refresh',btn_clear:'Clear',misc_rfq_app:'RFQ App',misc_logout:'Logout'},
+    cs:{admin_title:'Mega Admin Panel',admin_subtitle:'Interní administrace — firmy, uživatelé, zámky, audit',admin_companies:'Firmy',admin_users:'Uživatelé / Role',admin_locks:'Aktivní zámky',admin_audit:'Audit logy',admin_audit_loaded:'Audit (načteno)',admin_add_update:'Přidat / Upravit',admin_cancel_edit:'Zrušit úpravu',admin_editing:'Úprava firmy ID:',admin_create_user:'Vytvořit uživatele',admin_filter_users:'Filtr uživatelů (jméno/email/role/firma)',admin_all_companies:'Všechny firmy',admin_company_name:'Název firmy',admin_vat:'IČ DPH',admin_reg_no:'IČO',admin_address:'Adresa',admin_city:'Město',admin_postal:'PSČ',admin_country:'Země',admin_active:'aktivní',admin_show:'zobrazit',admin_bulk_role:'Hromadná role...',admin_apply_role:'Aplikovat roli',admin_bulk_deactivate:'Deaktivovat',admin_unlock_selected:'Odemknout vybrané',admin_action_filter:'filtr akce',admin_entity_filter:'filtr entity',admin_actor_filter:'filtr aktéra',btn_refresh:'Obnovit',btn_clear:'Vymazat',misc_rfq_app:'RFQ Aplikace',misc_logout:'Odhlásit'},
+    de:{admin_title:'Mega Admin Dashboard',admin_subtitle:'Interne Verwaltung — Firmen, Benutzer, Sperren, Audit',admin_companies:'Firmen',admin_users:'Benutzer / Rollen',admin_locks:'Aktive Sperren',admin_audit:'Audit-Protokolle',admin_audit_loaded:'Audit (geladen)',admin_add_update:'Hinzufügen / Aktualisieren',admin_cancel_edit:'Bearbeitung abbrechen',admin_editing:'Firma bearbeiten ID:',admin_create_user:'Benutzer erstellen',admin_filter_users:'Benutzer filtern (Name/E-Mail/Rolle/Firma)',admin_all_companies:'Alle Firmen',admin_company_name:'Firmenname',admin_vat:'USt-IdNr.',admin_reg_no:'Registrierungsnr.',admin_address:'Adresse',admin_city:'Stadt',admin_postal:'PLZ',admin_country:'Land',admin_active:'aktiv',admin_show:'anzeigen',admin_bulk_role:'Massenrolle...',admin_apply_role:'Rolle zuweisen',admin_bulk_deactivate:'Deaktivieren',admin_unlock_selected:'Ausgewählte entsperren',admin_action_filter:'Aktionsfilter',admin_entity_filter:'Entitätsfilter',admin_actor_filter:'Akteur enthält',btn_refresh:'Aktualisieren',btn_clear:'Löschen',misc_rfq_app:'RFQ App',misc_logout:'Abmelden'}
+  };
+  var c=localStorage.getItem(LS)||'en'; if(S.indexOf(c)===-1)c='en';
+  document.documentElement.lang=c;
+  function apply(lang){
+    var dd=d[lang]||d.en;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(dd[k])el.textContent=dd[k];});
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){var k=el.getAttribute('data-i18n-ph');if(dd[k])el.placeholder=dd[k];});
+  }
+  var sel=document.getElementById('mega-lang-select');
+  if(sel){S.forEach(function(l){var o=document.createElement('option');o.value=l;o.textContent=L[l];if(l===c)o.selected=true;sel.appendChild(o);});
+    sel.addEventListener('change',function(){c=sel.value;localStorage.setItem(LS,c);document.documentElement.lang=c;apply(c);});
+  }
+  apply(c);
+})();
 </script>
 </body>
 </html>

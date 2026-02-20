@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,19 +20,24 @@
               <path d="M8 12h16v2H8v-2zm0 4h16v2H8v-2zm0 4h10v2H8v-2z" fill="white"></path>
             </svg>
           </div>
-          <h1>Sign in to RFQ</h1>
-          <p>Welcome back! Please sign in to continue</p>
+          <h1 data-i18n="login_title">Sign in to RFQ</h1>
+          <p data-i18n="login_subtitle">Welcome back! Please sign in to continue</p>
         </header>
+
+        <!-- Language selector (small, top-right of card) -->
+        <div style="position:absolute; top:16px; right:16px;">
+          <select id="login-lang-select" style="font-size:11px; padding:2px 6px; border:1px solid #ddd; border-radius:4px; background:#f5f5f7; cursor:pointer;"></select>
+        </div>
 
         <div class="input-group">
           <input id="username" name="username" autocomplete="username" required placeholder=" " />
-          <label for="username">Username</label>
+          <label for="username" data-i18n="login_username">Username</label>
           <span class="input-border"></span>
         </div>
 
         <div class="input-group">
           <input id="password" class="password-input" type="password" name="password" autocomplete="current-password" required placeholder=" " />
-          <label for="password">Password</label>
+          <label for="password" data-i18n="login_password">Password</label>
           <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 3C4.5 3 1.6 5.6 1 8c.6 2.4 3.5 5 7 5s6.4-2.6 7-5c-.6-2.4-3.5-5-7-5zm0 8.5A3.5 3.5 0 118 4.5a3.5 3.5 0 010 7zm0-5.5a2 2 0 100 4 2 2 0 000-4z" fill="currentColor"></path>
@@ -49,13 +54,13 @@
                 <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
             </span>
-            Remember me
+            <span data-i18n="login_remember">Remember me</span>
           </label>
-          <a class="forgot-link" href="#" onclick="return false;" aria-disabled="true">Forgot password?</a>
+          <a class="forgot-link" href="#" onclick="return false;" aria-disabled="true" data-i18n="login_forgot">Forgot password?</a>
         </div>
 
         <input type="hidden" name="next" value="{{ next|default:'/' }}" />
-        <button class="submit-btn" type="submit">Sign in</button>
+        <button class="submit-btn" type="submit" data-i18n="btn_sign_in">Sign in</button>
 
         {% if error %}
           <p class="server-error" role="alert">{{ error }}</p>
@@ -66,12 +71,81 @@
 
   <script>
     (function () {
+      // Mini i18n for login page (standalone, no rfq_i18n.js dependency needed)
+      var LS_KEY = 'rfq_language';
+      var SUPPORTED = ['en', 'cs', 'de'];
+      var LABELS = { en: 'English', cs: 'Čeština', de: 'Deutsch' };
+
+      var dict = {
+        en: {
+          login_title: 'Sign in to RFQ',
+          login_subtitle: 'Welcome back! Please sign in to continue',
+          login_username: 'Username',
+          login_password: 'Password',
+          login_remember: 'Remember me',
+          login_forgot: 'Forgot password?',
+          btn_sign_in: 'Sign in'
+        },
+        cs: {
+          login_title: 'Přihlášení do RFQ',
+          login_subtitle: 'Vítejte zpět! Přihlaste se pro pokračování',
+          login_username: 'Uživatelské jméno',
+          login_password: 'Heslo',
+          login_remember: 'Zapamatovat',
+          login_forgot: 'Zapomenuté heslo?',
+          btn_sign_in: 'Přihlásit se'
+        },
+        de: {
+          login_title: 'Bei RFQ anmelden',
+          login_subtitle: 'Willkommen zurück! Bitte melden Sie sich an',
+          login_username: 'Benutzername',
+          login_password: 'Passwort',
+          login_remember: 'Angemeldet bleiben',
+          login_forgot: 'Passwort vergessen?',
+          btn_sign_in: 'Anmelden'
+        }
+      };
+
+      var current = localStorage.getItem(LS_KEY) || 'en';
+      if (SUPPORTED.indexOf(current) === -1) current = 'en';
+      document.documentElement.lang = current;
+
+      function applyLang(lang) {
+        var d = dict[lang] || dict.en;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+          var key = el.getAttribute('data-i18n');
+          if (d[key]) el.textContent = d[key];
+        });
+      }
+
+      // Build language selector
+      var sel = document.getElementById('login-lang-select');
+      if (sel) {
+        SUPPORTED.forEach(function (l) {
+          var opt = document.createElement('option');
+          opt.value = l;
+          opt.textContent = LABELS[l];
+          if (l === current) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener('change', function () {
+          current = sel.value;
+          localStorage.setItem(LS_KEY, current);
+          document.documentElement.lang = current;
+          applyLang(current);
+        });
+      }
+
+      applyLang(current);
+
+      // Password toggle
       var toggle = document.getElementById('passwordToggle');
       var input = document.getElementById('password');
-      if (!toggle || !input) return;
-      toggle.addEventListener('click', function () {
-        input.type = input.type === 'password' ? 'text' : 'password';
-      });
+      if (toggle && input) {
+        toggle.addEventListener('click', function () {
+          input.type = input.type === 'password' ? 'text' : 'password';
+        });
+      }
     })();
   </script>
 </body>

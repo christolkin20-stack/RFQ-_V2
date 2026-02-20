@@ -630,40 +630,43 @@ const nowIso = () => new Date().toISOString();
   // Unit options for items
   const UNITS = ['pcs', 'ea', 'set', 'kit', 'box', 'pack', 'roll', 'sheet', 'm', 'cm', 'mm', 'l', 'ml', 'kg', 'g'];
 
-  const FIELDS = [
-    { key: "line", label: "Line" },
-    { key: "item_drawing_no", label: "Drawing No" },
-    { key: "description", label: "Description" },
-    { key: "manufacturer", label: "Manufacturer" },
-    { key: "mpn", label: "MPN" },
-    { key: "unit", label: "Unit" },
-    { key: "status", label: "Status" },
-    { key: "target_price", label: "Target Price", type: "number" },
+  // Helper: use i18n if available, fallback to raw label
+  const _t = window.t || function(k) { return k; };
 
-    { key: "qty_1", label: "QTY 1" },
-    { key: "qty_2", label: "QTY 2" },
-    { key: "qty_3", label: "QTY 3" },
-    { key: "qty_4", label: "QTY 4" },
-    { key: "qty_5", label: "QTY 5" },
+  const FIELDS = [
+    { key: "line", label: _t("label_line"), _labelKey: "label_line" },
+    { key: "item_drawing_no", label: _t("label_drawing_no"), _labelKey: "label_drawing_no" },
+    { key: "description", label: _t("label_description"), _labelKey: "label_description" },
+    { key: "manufacturer", label: _t("label_manufacturer"), _labelKey: "label_manufacturer" },
+    { key: "mpn", label: _t("label_mpn"), _labelKey: "label_mpn" },
+    { key: "unit", label: _t("label_unit"), _labelKey: "label_unit" },
+    { key: "status", label: _t("label_status"), _labelKey: "label_status" },
+    { key: "target_price", label: _t("label_target_price"), _labelKey: "label_target_price", type: "number" },
+
+    { key: "qty_1", label: _t("label_qty_n", 1), _labelKey: "label_qty_n" },
+    { key: "qty_2", label: _t("label_qty_n", 2), _labelKey: "label_qty_n" },
+    { key: "qty_3", label: _t("label_qty_n", 3), _labelKey: "label_qty_n" },
+    { key: "qty_4", label: _t("label_qty_n", 4), _labelKey: "label_qty_n" },
+    { key: "qty_5", label: _t("label_qty_n", 5), _labelKey: "label_qty_n" },
 
     // Legacy main supplier fields (kept for backward compatibility)
-    { key: "supplier", label: "Main Supplier" },
-    { key: "currency", label: "Currency" },
-    { key: "incoterms", label: "Incoterms" },
-    { key: "moq", label: "MOQ" },
-    { key: "mov", label: "MOV" },
-    { key: "lead_time", label: "Lead Time" },
-    { key: "shipping_cost", label: "Shipping Cost" },
-    { key: "quote_valid_until", label: "Valid Until" },
+    { key: "supplier", label: _t("label_main_supplier"), _labelKey: "label_main_supplier" },
+    { key: "currency", label: _t("label_currency"), _labelKey: "label_currency" },
+    { key: "incoterms", label: _t("label_incoterms"), _labelKey: "label_incoterms" },
+    { key: "moq", label: _t("label_moq"), _labelKey: "label_moq" },
+    { key: "mov", label: _t("label_mov"), _labelKey: "label_mov" },
+    { key: "lead_time", label: _t("label_lead_time"), _labelKey: "label_lead_time" },
+    { key: "shipping_cost", label: _t("label_shipping_cost"), _labelKey: "label_shipping_cost" },
+    { key: "quote_valid_until", label: _t("label_valid_until"), _labelKey: "label_valid_until" },
 
     // Price columns (legacy)
-    { key: "price_1", label: "Price 1" },
-    { key: "price_2", label: "Price 2" },
-    { key: "price_3", label: "Price 3" },
-    { key: "price_4", label: "Price 4" },
-    { key: "price_5", label: "Price 5" },
+    { key: "price_1", label: _t("label_price_n", 1), _labelKey: "label_price_n" },
+    { key: "price_2", label: _t("label_price_n", 2), _labelKey: "label_price_n" },
+    { key: "price_3", label: _t("label_price_n", 3), _labelKey: "label_price_n" },
+    { key: "price_4", label: _t("label_price_n", 4), _labelKey: "label_price_n" },
+    { key: "price_5", label: _t("label_price_n", 5), _labelKey: "label_price_n" },
 
-    { key: "notes", label: "Notes" },
+    { key: "notes", label: _t("label_notes"), _labelKey: "label_notes" },
   ];
 
   // =========================================================

@@ -10,7 +10,7 @@ def app(request, bundle_id=None):
     if not request.user.is_authenticated:
         return redirect(f"/login/?next={request.path}")
     return render(request, 'rfq/app.html', {
-        'build_version': 'django-v133-admin-polish',
+        'build_version': 'django-v134-language-pack',
     })
 
 
