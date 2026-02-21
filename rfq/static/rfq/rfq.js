@@ -5419,7 +5419,7 @@ window.SystemApps.rfq = {
         const FIELDS = Array.isArray(RFQ.FIELDS) ? RFQ.FIELDS : [];
         const CURRENCY_RATES = RFQ.CURRENCY_RATES && typeof RFQ.CURRENCY_RATES === 'object' ? RFQ.CURRENCY_RATES : { EUR: 1 };
         const getProjects = (typeof RFQ.getProjects === 'function') ? RFQ.getProjects : function () { return []; };
-        const createProject = (typeof RFQ.createProject === 'function') ? RFQ.createProject : function () { showToast('RFQData not loaded: createProject', 'error'); return null; };
+        const createProject = (typeof RFQ.createProject === 'function') ? RFQ.createProject : function () { showToast(t('toast_rfqdata_not_loaded'), 'error'); return null; };
         const updateProject = (typeof RFQ.updateProject === 'function') ? RFQ.updateProject : function () { return false; };
 
         // State
@@ -7236,7 +7236,7 @@ window.SystemApps.rfq = {
 
             if (btnAdd) btnAdd.onclick = () => {
                 const name = input ? String(input.value || '').trim() : '';
-                if (!name) { if (window.showToast) window.showToast('Enter a status name', 'warning'); return; }
+                if (!name) { if (window.showToast) window.showToast(t('toast_enter_status_name'), 'warning'); return; }
                 try {
                     if (window.RFQData && typeof window.RFQData.addProjectStatusOption === 'function') {
                         window.RFQData.addProjectStatusOption(name);
@@ -7301,7 +7301,7 @@ window.SystemApps.rfq = {
                 btnRecalc.dataset.bound = '1';
                 btnRecalc.onclick = () => {
                     if (!currentProject) {
-                        if (window.showToast) window.showToast('Please select a project first', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_project'), 'warning');
                         return;
                     }
                     if (window.recalculateAllProjectData) {
@@ -7316,7 +7316,7 @@ window.SystemApps.rfq = {
                 btnDashAddNote.dataset.bound = '1';
                 btnDashAddNote.onclick = () => {
                     if (!currentProject) {
-                        if (window.showToast) window.showToast('Please select a project first', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_project'), 'warning');
                         return;
                     }
                     openDashboardNoteModal();
@@ -7577,7 +7577,7 @@ window.SystemApps.rfq = {
                 saveDashboardLayout();
                 saveCustomBoxes();
                 toggleDashboardEditMode();
-                if (window.showToast) window.showToast('Dashboard layout saved!', 'success');
+                if (window.showToast) window.showToast(t('toast_layout_saved'), 'success');
             };
 
             document.getElementById('btn-dash-layout-cancel').onclick = () => {
@@ -7589,11 +7589,11 @@ window.SystemApps.rfq = {
 
             document.getElementById('btn-dash-layout-reset').onclick = async () => {
                 const confirmed = await window.showConfirmDialog({
-                    title: 'Reset Dashboard',
-                    message: 'Reset dashboard to default layout? This will also remove custom boxes.',
+                    title: t('dialog_reset_dashboard'),
+                    message: t('dialog_reset_dashboard_msg'),
                     type: 'warning',
-                    okText: 'Reset',
-                    cancelText: 'Cancel'
+                    okText: t('btn_reset'),
+                    cancelText: t('btn_cancel')
                 });
                 if (confirmed) {
                     localStorage.removeItem('rfq_dashboard_layout');
@@ -7938,7 +7938,7 @@ window.SystemApps.rfq = {
                 if (config) {
                     createCustomBox(selectedType, config);
                     modal.remove();
-                    if (window.showToast) window.showToast('Box created!', 'success');
+                    if (window.showToast) window.showToast(t('toast_box_created'), 'success');
                 }
             };
         }
@@ -8251,7 +8251,7 @@ window.SystemApps.rfq = {
                     const checked = document.querySelectorAll('#box-cfg-metrics input:checked');
                     config.metrics = Array.from(checked).map(c => c.value);
                     if (config.metrics.length < 2) {
-                        if (window.showToast) window.showToast('Please select at least 2 metrics', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_2_metrics'), 'warning');
                         return null;
                     }
                     break;
@@ -8278,7 +8278,7 @@ window.SystemApps.rfq = {
                     const actions = document.querySelectorAll('#box-cfg-actions input:checked');
                     config.actions = Array.from(actions).map(c => c.value);
                     if (config.actions.length === 0) {
-                        if (window.showToast) window.showToast('Please select at least one action', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_action'), 'warning');
                         return null;
                     }
                     break;
@@ -8294,7 +8294,7 @@ window.SystemApps.rfq = {
                     config.targetDate = document.getElementById('box-cfg-target-date')?.value;
                     config.eventLabel = document.getElementById('box-cfg-event-label')?.value || 'Event';
                     if (!config.targetDate) {
-                        if (window.showToast) window.showToast('Please select a target date', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_target_date'), 'warning');
                         return null;
                     }
                     break;
@@ -8302,7 +8302,7 @@ window.SystemApps.rfq = {
                     const currencies = document.querySelectorAll('#box-cfg-currencies input:checked');
                     config.currencies = Array.from(currencies).map(c => c.value);
                     if (config.currencies.length === 0) {
-                        if (window.showToast) window.showToast('Please select at least one currency', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_currency'), 'warning');
                         return null;
                     }
                     break;
@@ -8358,16 +8358,16 @@ window.SystemApps.rfq = {
                     e.preventDefault();
                     e.stopPropagation();
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Delete Box',
-                        message: 'Delete this custom box?',
+                        title: t('dialog_delete_box'),
+                        message: t('dialog_delete_box_msg'),
                         type: 'danger',
-                        okText: 'Delete',
-                        cancelText: 'Cancel'
+                        okText: t('btn_delete'),
+                        cancelText: t('btn_cancel')
                     });
                     if (confirmed) {
                         box.remove();
                         saveCustomBoxes();
-                        if (window.showToast) window.showToast('Box deleted', 'success');
+                        if (window.showToast) window.showToast(t('toast_box_deleted'), 'success');
                     }
                 });
             }
@@ -9150,7 +9150,7 @@ window.SystemApps.rfq = {
                 if (confirmed) {
                     box.remove();
                     saveCustomBoxes();
-                    if (window.showToast) window.showToast('Box deleted', 'success');
+                    if (window.showToast) window.showToast(t('toast_box_deleted'), 'success');
                 }
             }
         };
@@ -9426,7 +9426,7 @@ window.SystemApps.rfq = {
                     const sel = getEl('bulk-supplier-select');
                     const supplierName = sel ? String(sel.value || '').trim() : '';
                     if (!supplierName) {
-                        showToast('Select supplier in Suppliers → Bulk Pricing first.', 'warning');
+                        showToast(t('toast_select_supplier_bulk'), 'warning');
                         try { if (sel) sel.focus(); } catch (e) { }
                         return;
                     }
@@ -9551,11 +9551,11 @@ window.SystemApps.rfq = {
                         e.stopPropagation();
                         const projName = el.getAttribute('data-proj-name') || pid;
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete Project',
-                            message: `Are you sure you want to delete project "${projName}"?\n\nThis action cannot be undone.`,
+                            title: t('dialog_delete_project'),
+                            message: t('dialog_delete_project_msg', projName),
                             type: 'danger',
-                            okText: 'Delete',
-                            cancelText: 'Cancel'
+                            okText: t('btn_delete'),
+                            cancelText: t('btn_cancel')
                         });
                         if (!confirmed) return;
                         if (window.RFQData && typeof window.RFQData.deleteProject === 'function') {
@@ -9699,10 +9699,10 @@ window.SystemApps.rfq = {
                     } else if (action === 'edit') {
                         const cur = currentProject.dashboard_notes[idx];
                         const next = await window.showPromptDialog({
-                            title: 'Edit Comment',
-                            message: 'Edit dashboard comment:',
+                            title: t('dialog_edit_comment'),
+                            message: t('dialog_edit_comment_msg'),
                             defaultValue: cur ? String(cur.text || '') : '',
-                            placeholder: 'Comment text'
+                            placeholder: t('ph_comment')
                         });
                         if (next === null) return;
                         currentProject.dashboard_notes[idx] = { ...(cur || {}), text: String(next).trim() };
@@ -9741,7 +9741,7 @@ window.SystemApps.rfq = {
             const sheetAddChoice = getEl('sheet-add-choice');
 
             if (btnAddItem) btnAddItem.onclick = () => {
-                if (!currentProject) { if (window.showToast) window.showToast('Select a project first', 'warning'); return; }
+                if (!currentProject) { if (window.showToast) window.showToast(t('toast_select_project'), 'warning'); return; }
                 sheetAddChoice.classList.remove('hidden');
             };
 
@@ -9757,7 +9757,7 @@ window.SystemApps.rfq = {
             const btnImportTargets = getEl('btn-import-target-prices');
             const fileImportTargets = getEl('file-import-targets');
             if (btnImportTargets) btnImportTargets.onclick = () => {
-                if (!currentProject) { if (window.showToast) window.showToast('Select a project first', 'warning'); return; }
+                if (!currentProject) { if (window.showToast) window.showToast(t('toast_select_project'), 'warning'); return; }
                 if (fileImportTargets) fileImportTargets.click();
             };
             if (fileImportTargets) fileImportTargets.onchange = handleImportTargetPrices;
@@ -10020,7 +10020,7 @@ window.SystemApps.rfq = {
             } else if (view === 'data' && viewDataManager) {
                 viewDataManager.classList.remove('hidden');
                 if (navData) navData.classList.add('active');
-                try { renderDataManager(); } catch (e) { console.error(e); showToast('DATA render error: ' + (e && e.message ? e.message : String(e)), 'error'); }
+                try { renderDataManager(); } catch (e) { console.error(e); showToast(t('toast_render_error') + ': ' + (e && e.message ? e.message : String(e)), 'error'); }
             } else if (view === 'dashboard' && viewDashboard) {
                 viewDashboard.classList.remove('hidden');
                 if (navDashboard) navDashboard.classList.add('active');
@@ -10262,7 +10262,7 @@ window.SystemApps.rfq = {
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
-            } catch (e) { console.error(e); showToast('Export failed: ' + (e && e.message ? e.message : String(e)), 'error'); }
+            } catch (e) { console.error(e); showToast(t('toast_export_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error'); }
         }
 
         function dmExportBackup() {
@@ -10291,11 +10291,11 @@ window.SystemApps.rfq = {
                     try { projects = getAllProjectsSafe(); } catch (e) { }
                     try { if (typeof renderSidebar === 'function') renderSidebar(); } catch (e) { }
                     try { if (typeof renderSidebarProjects === 'function') renderSidebarProjects(); } catch (e) { }
-                    showToast('Import OK. Projects merged: ' + merged.length, 'success');
+                    showToast(t('toast_import_ok', merged.length), 'success');
                     try { renderDataManager(); } catch (e) { }
                 } catch (e) {
                     console.error(e);
-                    showToast('Import failed: ' + (e && e.message ? e.message : String(e)), 'error');
+                    showToast(t('toast_import_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error');
                 }
             };
             reader.readAsText(file);
@@ -10303,11 +10303,11 @@ window.SystemApps.rfq = {
 
         async function dmResetAllRFQ() {
             const confirmed = await window.showConfirmDialog({
-                title: 'Reset All Data',
-                message: 'This will remove all RFQ data from this browser (projects, items, suppliers, quotes). Continue?',
+                title: t('dialog_reset_all'),
+                message: t('dialog_reset_all_msg'),
                 type: 'danger',
-                okText: 'Reset All',
-                cancelText: 'Cancel'
+                okText: t('btn_reset_all'),
+                cancelText: t('btn_cancel')
             });
             if (!confirmed) return;
             const toRemove = [];
@@ -10321,7 +10321,7 @@ window.SystemApps.rfq = {
             try {
                 fetch('/api/projects/reset', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, credentials: 'same-origin' }).catch(() => { });
             } catch (e) { }
-            if (window.showToast) window.showToast('RFQ data cleared. Reloading…', 'success');
+            if (window.showToast) window.showToast(t('toast_data_cleared'), 'success');
             setTimeout(() => location.reload(), 500);
         }
 
@@ -10945,7 +10945,7 @@ window.SystemApps.rfq = {
             document.getElementById('btn-main-layout-save').onclick = () => {
                 saveMainLayout();
                 toggleMainEditMode();
-                showToast('Layout saved!', 'success');
+                showToast(t('toast_layout_saved'), 'success');
             };
 
             document.getElementById('btn-main-layout-cancel').onclick = () => {
@@ -10954,11 +10954,11 @@ window.SystemApps.rfq = {
 
             document.getElementById('btn-main-layout-reset').onclick = async () => {
                 const confirmed = await window.showConfirmDialog({
-                    title: 'Reset Main Layout',
-                    message: 'Reset dashboard to default layout? This will remove custom boxes and restore default sizes.',
+                    title: t('dialog_reset_layout'),
+                    message: t('dialog_reset_layout_msg'),
                     type: 'warning',
-                    okText: 'Reset',
-                    cancelText: 'Cancel'
+                    okText: t('btn_reset'),
+                    cancelText: t('btn_cancel')
                 });
                 if (confirmed) {
                     localStorage.removeItem('rfq_main_layout');
@@ -11133,21 +11133,21 @@ window.SystemApps.rfq = {
                             btn.textContent = box.classList.contains('hidden-box') ? '👁‍🗨' : '👁';
                         } else if (action === 'delete-box') {
                             if (box.dataset.boxId === 'main-projects-table-box') {
-                                showToast('The All Projects box cannot be deleted', 'warning');
+                                showToast(t('toast_cannot_delete_all_projects'), 'warning');
                             } else if (box.dataset.customBox === 'true') {
                                 handleDeleteMainBox(box);
                             } else {
                                 const hideConfirmed = await window.showConfirmDialog({
-                                    title: 'Hide Box',
-                                    message: 'Hide this box from the dashboard? You can restore it with Reset Layout.',
+                                    title: t('dialog_hide_box'),
+                                    message: t('dialog_hide_box_msg'),
                                     type: 'warning',
-                                    okText: 'Hide',
-                                    cancelText: 'Cancel'
+                                    okText: t('btn_hide'),
+                                    cancelText: t('btn_cancel')
                                 });
                                 if (hideConfirmed) {
                                     box.classList.add('hidden-box');
                                     saveMainLayout();
-                                    showToast('Box hidden. Use Reset Layout to restore.', 'info');
+                                    showToast(t('toast_box_hidden'), 'info');
                                 }
                             }
                         }
@@ -11158,16 +11158,16 @@ window.SystemApps.rfq = {
 
         async function handleDeleteMainBox(box) {
             const confirmed = await window.showConfirmDialog({
-                title: 'Delete Box',
-                message: 'Delete this custom box?',
+                title: t('dialog_delete_box'),
+                message: t('dialog_delete_box_msg'),
                 type: 'danger',
-                okText: 'Delete',
-                cancelText: 'Cancel'
+                okText: t('btn_delete'),
+                cancelText: t('btn_cancel')
             });
             if (confirmed) {
                 box.remove();
                 saveMainCustomBoxes();
-                showToast('Box deleted', 'success');
+                showToast(t('toast_box_deleted'), 'success');
             }
         }
 
@@ -11357,7 +11357,7 @@ window.SystemApps.rfq = {
                             if (visBtn) visBtn.textContent = '👁';
                             saveMainLayout();
                             modal.remove();
-                            showToast('Box restored!', 'success');
+                            showToast(t('toast_box_restored'), 'success');
                         }
                     };
                 });
@@ -11394,7 +11394,7 @@ window.SystemApps.rfq = {
                     createMainCustomBox(config);
                     saveMainCustomBoxes();
                     modal.remove();
-                    showToast('Box created!', 'success');
+                    showToast(t('toast_box_created'), 'success');
                 }
             };
         }
@@ -11597,7 +11597,7 @@ window.SystemApps.rfq = {
                 case 'main-countdown':
                     config.targetDate = document.getElementById('main-box-cfg-date')?.value;
                     config.eventLabel = document.getElementById('main-box-cfg-label')?.value || 'Event';
-                    if (!config.targetDate) { showToast('Please select a target date', 'warning'); return null; }
+                    if (!config.targetDate) { showToast(t('toast_select_target_date'), 'warning'); return null; }
                     break;
 
                 case 'main-link-buttons':
@@ -11623,7 +11623,7 @@ window.SystemApps.rfq = {
                 case 'main-multi-stat':
                     const checked = document.querySelectorAll('#main-box-cfg-metrics input:checked');
                     config.metrics = Array.from(checked).map(c => c.value);
-                    if (config.metrics.length < 2) { showToast('Select at least 2 metrics', 'warning'); return null; }
+                    if (config.metrics.length < 2) { showToast(t('toast_select_2_metrics'), 'warning'); return null; }
                     break;
 
                 case 'main-comparison':
@@ -11663,7 +11663,7 @@ window.SystemApps.rfq = {
                 case 'main-currency-rates':
                     const currChecked = document.querySelectorAll('#main-box-cfg-currencies input:checked');
                     config.currencies = Array.from(currChecked).map(c => c.value);
-                    if (config.currencies.length === 0) { showToast('Select at least 1 currency', 'warning'); return null; }
+                    if (config.currencies.length === 0) { showToast(t('toast_select_currency'), 'warning'); return null; }
                     break;
 
                 case 'main-clock':
@@ -14184,7 +14184,7 @@ window.SystemApps.rfq = {
                     window.openSupplierDetail(supplierName);
                 }
             } else {
-                showToast('Supplier "' + supplierName + '" not found in any project.', 'warning');
+                showToast(t('toast_supplier_not_found_project', supplierName), 'warning');
             }
         }
 
@@ -14332,8 +14332,8 @@ window.SystemApps.rfq = {
             if (btnAdd) btnAdd.onclick = () => {
                 const title = t ? String(t.value || '').trim() : '';
                 const url = u ? String(u.value || '').trim() : '';
-                if (!url) { if (window.showToast) window.showToast('URL is required', 'warning'); return; }
-                try { new URL(url); } catch (e) { if (window.showToast) window.showToast('Invalid URL', 'error'); return; }
+                if (!url) { if (window.showToast) window.showToast(t('toast_url_required'), 'warning'); return; }
+                try { new URL(url); } catch (e) { if (window.showToast) window.showToast(t('toast_invalid_url'), 'error'); return; }
                 try { if (typeof onAdd === 'function') onAdd({ title, url }); } catch (e) { }
                 close();
             };
@@ -15297,7 +15297,7 @@ window.SystemApps.rfq = {
                         await loadProjectAttachments(String(currentProject.id));
                         renderProjectDetail();
                     } catch (err) {
-                        showToast('Upload failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                        showToast(t('toast_upload_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                     } finally {
                         e.target.value = '';
                     }
@@ -15368,11 +15368,11 @@ window.SystemApps.rfq = {
                     }
                     if (action === 'del-attachment') {
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete Attachment',
-                            message: 'Delete this attachment?',
+                            title: t('dialog_delete_attachment'),
+                            message: t('dialog_delete_attachment_msg'),
                             type: 'danger',
-                            okText: 'Delete',
-                            cancelText: 'Cancel'
+                            okText: t('btn_delete'),
+                            cancelText: t('btn_cancel')
                         });
                         if (!confirmed) return;
                         try {
@@ -15384,7 +15384,7 @@ window.SystemApps.rfq = {
                             }
                             renderProjectDetail();
                         } catch (err) {
-                            showToast('Delete failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                            showToast(t('toast_delete_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                         }
                     }
                     if (action === 'mark-supplier-won' && supName) {
@@ -15457,20 +15457,20 @@ window.SystemApps.rfq = {
                         ev.preventDefault();
                         try {
                             if (typeof window.exportToExcel === 'function') window.exportToExcel();
-                            else showToast('Export function not available', 'error');
-                        } catch (e) { showToast('Export failed: ' + e.message, 'error'); }
+                            else showToast(t('toast_export_not_available'), 'error');
+                        } catch (e) { showToast(t('toast_export_failed') + ': ' + e.message, 'error'); }
                     }
                     if (action === 'export-pricing-excel') {
                         ev.preventDefault();
                         try {
                             if (typeof window.exportPricingViewExcel === 'function') window.exportPricingViewExcel();
-                            else showToast('Export function not available', 'error');
-                        } catch (e) { showToast('Export failed: ' + e.message, 'error'); }
+                            else showToast(t('toast_export_not_available'), 'error');
+                        } catch (e) { showToast(t('toast_export_failed') + ': ' + e.message, 'error'); }
                     }
                     if (action === 'export-project-json') {
                         ev.preventDefault();
                         try {
-                            if (!currentProject) { if (window.showToast) window.showToast('No project selected', 'warning'); return; }
+                            if (!currentProject) { if (window.showToast) window.showToast(t('toast_no_project'), 'warning'); return; }
                             const data = JSON.stringify(currentProject, null, 2);
                             const blob = new Blob([data], { type: 'application/json' });
                             const url = URL.createObjectURL(blob);
@@ -15481,27 +15481,27 @@ window.SystemApps.rfq = {
                             a.click();
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
-                        } catch (e) { showToast('Export failed: ' + e.message, 'error'); }
+                        } catch (e) { showToast(t('toast_export_failed') + ': ' + e.message, 'error'); }
                     }
                     if (action === 'export-full-backup') {
                         ev.preventDefault();
                         try {
                             if (typeof dmExportBackup === 'function') dmExportBackup();
-                            else showToast('Backup function not available', 'error');
-                        } catch (e) { showToast('Backup failed: ' + e.message, 'error'); }
+                            else showToast(t('toast_backup_not_available'), 'error');
+                        } catch (e) { showToast(t('toast_backup_failed') + ': ' + e.message, 'error'); }
                     }
                     if (action === 'copy-quick-stats') {
                         ev.preventDefault();
                         const ta = getEl('projdetail-quick-stats');
                         if (ta) {
-                            navigator.clipboard.writeText(ta.value).then(() => window.showToast && window.showToast('Copied!', 'success')).catch(() => window.showToast && window.showToast('Failed to copy', 'error'));
+                            navigator.clipboard.writeText(ta.value).then(() => window.showToast && window.showToast(t('toast_copied'), 'success')).catch(() => window.showToast && window.showToast(t('toast_copy_failed'), 'error'));
                         }
                     }
                     if (action === 'copy-email-summary') {
                         ev.preventDefault();
                         const ta = getEl('projdetail-email-summary');
                         if (ta) {
-                            navigator.clipboard.writeText(ta.value).then(() => window.showToast && window.showToast('Copied!', 'success')).catch(() => window.showToast && window.showToast('Failed to copy', 'error'));
+                            navigator.clipboard.writeText(ta.value).then(() => window.showToast && window.showToast(t('toast_copied'), 'success')).catch(() => window.showToast && window.showToast(t('toast_copy_failed'), 'error'));
                         }
                     }
                 });
@@ -16172,7 +16172,7 @@ window.SystemApps.rfq = {
                         await loadProjectAttachments(String(currentProject.id));
                         renderProjectDetail();
                     } catch (err) {
-                        showToast('Upload failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                        showToast(t('toast_upload_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                     } finally {
                         e.target.value = '';
                     }
@@ -16741,11 +16741,11 @@ Best regards`)}</textarea>
 
             // Re-attach clear handler
             document.getElementById('pf-btn-clear-log')?.addEventListener('click', async () => {
-                const ok = await showConfirmDialog('Clear Transfer Log', 'Clear the transfer log for this session?');
+                const ok = await showConfirmDialog(t('dialog_clear_log'), t('dialog_clear_log_msg'));
                 if (!ok) return;
                 window.__priceTransferLog = window.__priceTransferLog.filter(t => t.projectId !== currentProject.id);
                 _updateTransferLogUI();
-                showToast('Transfer log cleared', 'success');
+                showToast(t('toast_log_cleared'), 'success');
             });
         }
 
@@ -16786,7 +16786,7 @@ Best regards`)}</textarea>
                 if (!q) return;
 
                 const item = currentProject.items[r.itemIdx];
-                if (!item) { showToast('Item not found', 'error'); return; }
+                if (!item) { showToast(t('toast_item_not_found'), 'error'); return; }
 
                 const isUpdate = btn.dataset.isUpdate === 'true';
                 const priceBreaks = q.allPrices || [];
@@ -17029,10 +17029,10 @@ Best regards`)}</textarea>
 
             // Clear Log button
             document.getElementById('pf-btn-clear-log')?.addEventListener('click', async () => {
-                const ok = await showConfirmDialog('Clear Transfer Log', 'Are you sure you want to clear the transfer log for this session?');
+                const ok = await showConfirmDialog(t('dialog_clear_log'), t('dialog_clear_log_msg'));
                 if (!ok) return;
                 window.__priceTransferLog = window.__priceTransferLog.filter(t => t.projectId !== currentProject.id);
-                showToast('Transfer log cleared', 'success');
+                showToast(t('toast_log_cleared'), 'success');
                 renderSamePartView();
             });
 
@@ -17051,7 +17051,7 @@ Best regards`)}</textarea>
                     `• Price breaks: ${totalBreaks}\n` +
                     (qtyDiffCount > 0 ? `• ⚠️ ${qtyDiffCount} items have different QTY` : '• ✅ All QTY match');
 
-                const ok = await showConfirmDialog('Transfer All Best Prices', confirmMsg);
+                const ok = await showConfirmDialog(t('dialog_transfer_best'), confirmMsg);
                 if (!ok) return;
 
                 let c = 0;
@@ -17134,7 +17134,7 @@ Best regards`)}</textarea>
 
             // Excel Export
             document.getElementById('pf-btn-excel')?.addEventListener('click', () => {
-                if (!window.XLSX) { showToast('XLSX not loaded', 'error'); return; }
+                if (!window.XLSX) { showToast(t('toast_xlsx_not_loaded'), 'error'); return; }
                 const rows = [];
                 results.forEach(r => {
                     r.quotes.forEach(q => {
@@ -17162,7 +17162,7 @@ Best regards`)}</textarea>
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Price Finder');
                 XLSX.writeFile(wb, `PriceFinder_${currentProject.name.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
-                showToast('Exported to Excel', 'success');
+                showToast(t('toast_exported_excel'), 'success');
             });
 
             // Supplier Export
@@ -17175,13 +17175,13 @@ Best regards`)}</textarea>
                     });
                 });
                 const sups = Object.keys(bySup);
-                if (!sups.length) { showToast('No suppliers', 'warning'); return; }
+                if (!sups.length) { showToast(t('toast_no_suppliers'), 'warning'); return; }
 
-                const name = await showPromptDialog('Supplier Export',
-                    'Enter supplier name:\n\n' + sups.map(s => `• ${s} (${bySup[s].length})`).join('\n'));
-                if (!name || !bySup[name]) { showToast('Not found', 'warning'); return; }
+                const name = await showPromptDialog(t('dialog_supplier_export'),
+                    t('dialog_enter_supplier_name') + ':\n\n' + sups.map(s => `• ${s} (${bySup[s].length})`).join('\n'));
+                if (!name || !bySup[name]) { showToast(t('toast_not_found'), 'warning'); return; }
 
-                if (!window.XLSX) { showToast('XLSX not loaded', 'error'); return; }
+                if (!window.XLSX) { showToast(t('toast_xlsx_not_loaded'), 'error'); return; }
                 const rows = bySup[name].map(it => ({
                     'Drawing No': it.dn,
                     'MPN': it.mpn,
@@ -17234,7 +17234,7 @@ Best regards`)}</textarea>
             const inputSentTo = getEl('new-project-sent-to');
 
             if (!input || !input.value.trim()) {
-                if (window.showToast) window.showToast('Please enter a project name', 'warning');
+                if (window.showToast) window.showToast(t('toast_enter_project_name'), 'warning');
                 return;
             }
             if (typeof createProject === 'function') {
@@ -18168,7 +18168,7 @@ Best regards`)}</textarea>
                     const supplierSel = getEl('bulk-supplier-select');
                     const supplierName = supplierSel ? String(supplierSel.value || '').trim() : '';
                     if (!supplierName) {
-                        if (window.showToast) window.showToast('Select supplier first', 'warning');
+                        if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                         return;
                     }
                     const input = document.createElement('input');
@@ -18179,7 +18179,7 @@ Best regards`)}</textarea>
                         if (!file) return;
 
                         if (file.size > 10 * 1024 * 1024) {
-                            if (window.showToast) window.showToast('File too large! Maximum size is 10MB.', 'error');
+                            if (window.showToast) window.showToast(t('toast_file_too_large'), 'error');
                             return;
                         }
 
@@ -18209,7 +18209,7 @@ Best regards`)}</textarea>
                             if (ext === 'xlsx' || ext === 'xls') {
                                 if (!window.XLSX) {
                                     await keepAttachment();
-                                    showToast('Excel library not loaded. File stored as attachment only.', 'warning');
+                                    showToast(t('toast_xlsx_attachment_only'), 'warning');
                                     return;
                                 }
                                 const r = new FileReader();
@@ -18227,7 +18227,7 @@ Best regards`)}</textarea>
                                     } catch (err) {
                                         console.error(err);
                                         await keepAttachment();
-                                        showToast('Import failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                                        showToast(t('toast_import_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                                     }
                                 };
                                 r.readAsArrayBuffer(file);
@@ -18256,7 +18256,7 @@ Best regards`)}</textarea>
                                     } catch (err) {
                                         console.error(err);
                                         await keepAttachment();
-                                        showToast('Import failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                                        showToast(t('toast_import_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                                     }
                                 };
                                 r.readAsText(file);
@@ -18287,7 +18287,7 @@ Best regards`)}</textarea>
                         if (!file) return;
 
                         if (file.size > 10 * 1024 * 1024) {
-                            if (window.showToast) window.showToast('File too large! Maximum size is 10MB.', 'error');
+                            if (window.showToast) window.showToast(t('toast_file_too_large'), 'error');
                             return;
                         }
 
@@ -18296,7 +18296,7 @@ Best regards`)}</textarea>
                         if (ext === 'xlsx' || ext === 'xls') {
                             // Excel import
                             if (!window.XLSX) {
-                                showToast('Excel library not loaded. Please refresh the page and try again.', 'error');
+                                showToast(t('toast_xlsx_refresh'), 'error');
                                 return;
                             }
                             const r = new FileReader();
@@ -18316,7 +18316,7 @@ Best regards`)}</textarea>
                                     }
                                 } catch (err) {
                                     console.error(err);
-                                    showToast('Import failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                                    showToast(t('toast_import_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                                 }
                             };
                             r.readAsArrayBuffer(file);
@@ -18344,7 +18344,7 @@ Best regards`)}</textarea>
                                     }
                                 } catch (err) {
                                     console.error(err);
-                                    showToast('Import failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                                    showToast(t('toast_import_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                                 }
                             };
                             r.readAsText(file);
@@ -18635,9 +18635,9 @@ Best regards`)}</textarea>
             if (btnAddNewSupplier && !btnAddNewSupplier.dataset.listenerAdded) {
                 btnAddNewSupplier.addEventListener('click', async () => {
                     const newName = await window.showPromptDialog({
-                        title: 'Add New Supplier',
-                        message: 'Enter new supplier name:',
-                        placeholder: 'Supplier name'
+                        title: t('dialog_add_supplier'),
+                        message: t('dialog_add_supplier_msg'),
+                        placeholder: t('ph_supplier_name')
                     });
                     if (newName && newName.trim()) {
                         select.innerHTML += `<option value="${newName.trim()}">${newName.trim()}</option>`;
@@ -19036,7 +19036,7 @@ Best regards`)}</textarea>
             try { renderDashboard(); } catch (e) { }
 
             getEl('btn-save-bulk-prices').disabled = true;
-            if (window.showToast) window.showToast('All changes saved successfully!', 'success');
+            if (window.showToast) window.showToast(t('toast_all_saved'), 'success');
         }
 
 
@@ -19753,7 +19753,7 @@ Best regards`)}</textarea>
                 btnTemplate.dataset.bound = '1';
                 btnTemplate.addEventListener('click', () => {
                     if (!window.XLSX) {
-                        if (window.showToast) window.showToast('Excel library not loaded. Please refresh the page.', 'error');
+                        if (window.showToast) window.showToast(t('toast_xlsx_refresh'), 'error');
                         return;
                     }
 
@@ -20186,18 +20186,18 @@ Best regards`)}</textarea>
                 btnResetStatuses.dataset.bound = '1';
                 btnResetStatuses.addEventListener('click', async () => {
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Reset Statuses',
-                        message: 'Reset all statuses to defaults? This cannot be undone.',
+                        title: t('dialog_reset_statuses'),
+                        message: t('dialog_reset_statuses_msg'),
                         type: 'warning',
-                        okText: 'Reset',
-                        cancelText: 'Cancel'
+                        okText: t('btn_reset'),
+                        cancelText: t('btn_cancel')
                     });
                     if (!confirmed) return;
                     resetStatusesToDefaults();
                     renderStatusList();
                     showSuccessModal({
-                        title: 'Statuses Reset',
-                        message: 'All statuses have been reset to default values.',
+                        title: t('dialog_statuses_reset'),
+                        message: t('dialog_statuses_reset_msg'),
                         icon: '🔄',
                         iconColor: '#f59e0b'
                     });
@@ -20310,10 +20310,10 @@ Best regards`)}</textarea>
                 btn.addEventListener('click', async (e) => {
                     const id = parseInt(e.target.dataset.statusId, 10);
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Delete Status',
-                        message: 'Delete this status? Items with this status will keep their status name.',
+                        title: t('dialog_delete_status'),
+                        message: t('dialog_delete_status_msg'),
                         type: 'danger',
-                        okText: 'Delete',
+                        okText: t('btn_delete'),
                         cancelText: 'Cancel'
                     });
                     if (!confirmed) return;
@@ -20450,7 +20450,7 @@ Best regards`)}</textarea>
                 const category = document.getElementById('new-status-category')?.value;
 
                 if (!name) {
-                    if (window.showToast) window.showToast('Please enter a status name', 'warning');
+                    if (window.showToast) window.showToast(t('toast_enter_status_name'), 'warning');
                     return;
                 }
 
@@ -20984,7 +20984,7 @@ Best regards`)}</textarea>
                 idx = (proj.items || []).findIndex(it => String(it.item_drawing_no || '').trim() === String(ref.drawingNo || '').trim());
             }
             if (idx < 0) {
-                showToast('Item not found in selected project.', 'warning');
+                showToast(t('toast_item_not_in_project'), 'warning');
                 return;
             }
             try { openDetailWindow(idx); } catch (e) { try { openItemDetail(idx); } catch (e2) { } }
@@ -21599,10 +21599,10 @@ Best regards`)}</textarea>
 
         async function handleRenameProject(project) {
             const newName = await window.showPromptDialog({
-                title: 'Rename Project',
-                message: 'Enter new project name:',
+                title: t('dialog_rename_project'),
+                message: t('dialog_enter_project_name'),
                 defaultValue: project.name,
-                placeholder: 'Project name'
+                placeholder: t('ph_project_name')
             });
             if (newName && newName.trim() !== '') {
                 project.name = newName.trim();
@@ -21617,10 +21617,10 @@ Best regards`)}</textarea>
 
         async function handleDeleteProject(project) {
             const confirmed = await window.showConfirmDialog({
-                title: 'Delete Project',
-                message: `Are you sure you want to delete project "${project.name}"?`,
+                title: t('dialog_delete_project'),
+                message: t('dialog_delete_project_msg', project.name),
                 type: 'danger',
-                okText: 'Delete',
+                okText: t('btn_delete'),
                 cancelText: 'Cancel'
             });
             if (confirmed) {
@@ -21646,7 +21646,7 @@ Best regards`)}</textarea>
         function handleCreateProject() {
             const name = (inputNewProjectName && inputNewProjectName.value ? inputNewProjectName.value.trim() : '');
             if (!name) {
-                if (window.showToast) window.showToast('Please enter a project name', 'warning');
+                if (window.showToast) window.showToast(t('toast_enter_project_name'), 'warning');
                 return;
             }
 
@@ -22299,12 +22299,12 @@ Best regards`)}</textarea>
         // Excel Export for Pricing View
         function exportPricingViewExcel() {
             if (!currentProject || !currentProject.items) {
-                showToast('No project data to export', 'warning');
+                showToast(t('toast_no_project_data'), 'warning');
                 return;
             }
 
             if (typeof XLSX === 'undefined') {
-                showToast('XLSX library not loaded', 'error');
+                showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -22396,7 +22396,7 @@ Best regards`)}</textarea>
             });
 
             if (rows.length <= 1) {
-                if (window.showToast) window.showToast('No items to export', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_export'), 'warning');
                 return;
             }
 
@@ -22821,7 +22821,7 @@ Best regards`)}</textarea>
                             a.click();
                             document.body.removeChild(a);
                         } else {
-                            showToast('Cannot download (file data missing)', 'warning');
+                            showToast(t('toast_file_data_missing'), 'warning');
                         }
                     });
                 });
@@ -22831,11 +22831,11 @@ Best regards`)}</textarea>
                         const idx = parseInt(e.currentTarget.dataset.idx);
 
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete Attachment',
-                            message: 'Delete this attachment?',
+                            title: t('dialog_delete_attachment'),
+                            message: t('dialog_delete_attachment_msg'),
                             type: 'danger',
-                            okText: 'Delete',
-                            cancelText: 'Cancel'
+                            okText: t('btn_delete'),
+                            cancelText: t('btn_cancel')
                         });
                         if (!confirmed) return;
 
@@ -22917,11 +22917,11 @@ Best regards`)}</textarea>
                     btn.onclick = async () => {
                         const idx = parseInt(btn.dataset.idx);
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete Attachment',
-                            message: 'Delete this attachment?',
+                            title: t('dialog_delete_attachment'),
+                            message: t('dialog_delete_attachment_msg'),
                             type: 'danger',
-                            okText: 'Delete',
-                            cancelText: 'Cancel'
+                            okText: t('btn_delete'),
+                            cancelText: t('btn_cancel')
                         });
                         if (!confirmed) return;
                         item.attachments.splice(idx, 1);
@@ -23173,7 +23173,7 @@ Best regards`)}</textarea>
                             if (mpnValue) {
                                 window.open(`https://www.google.com/search?q=${encodeURIComponent(mpnValue)}`, '_blank');
                             } else {
-                                showToast('Please enter an MPN value first.', 'warning');
+                                showToast(t('toast_enter_mpn'), 'warning');
                             }
                         };
 
@@ -23422,10 +23422,10 @@ Best regards`)}</textarea>
                     cont.querySelectorAll('.btn-remove-supplier').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             const confirmed = await window.showConfirmDialog({
-                                title: 'Remove Supplier',
-                                message: 'Remove this supplier from the item?',
+                                title: t('dialog_remove_supplier'),
+                                message: t('dialog_remove_supplier_msg'),
                                 type: 'warning',
-                                okText: 'Remove',
+                                okText: t('btn_remove'),
                                 cancelText: 'Cancel'
                             });
                             if (!confirmed) return;
@@ -23592,10 +23592,10 @@ Best regards`)}</textarea>
 
                         if (action === 'remove-target') {
                             const confirmed = await window.showConfirmDialog({
-                                title: 'Remove Target Supplier',
-                                message: 'Remove target supplier from this item?',
+                                title: t('dialog_remove_supplier'),
+                                message: t('dialog_remove_target_msg'),
                                 type: 'warning',
-                                okText: 'Remove',
+                                okText: t('btn_remove'),
                                 cancelText: 'Cancel'
                             });
                             if (!confirmed) return;
@@ -23623,7 +23623,7 @@ Best regards`)}</textarea>
 
                 // Check if already exists
                 if (item.suppliers.some(s => s.name.toLowerCase() === supName.toLowerCase())) {
-                    showToast('Supplier already exists in list!', 'warning');
+                    showToast(t('toast_supplier_exists'), 'warning');
                     return;
                 }
 
@@ -23826,10 +23826,10 @@ Best regards`)}</textarea>
                 container.querySelectorAll('.btn-delete-quote').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete Quote',
-                            message: 'Delete this quote?',
+                            title: t('dialog_delete_quote'),
+                            message: t('dialog_delete_quote_msg'),
                             type: 'danger',
-                            okText: 'Delete',
+                            okText: t('btn_delete'),
                             cancelText: 'Cancel'
                         });
                         if (!confirmed) return;
@@ -23859,7 +23859,7 @@ Best regards`)}</textarea>
 
                     // Check file size (max 10MB)
                     if (file.size > 10 * 1024 * 1024) {
-                        if (window.showToast) window.showToast('File too large! Maximum size is 10MB.', 'error');
+                        if (window.showToast) window.showToast(t('toast_file_too_large'), 'error');
                         return;
                     }
 
@@ -23897,7 +23897,7 @@ Best regards`)}</textarea>
             // General upload button handler (with supplier selection)
             quotesSection.querySelector('#btn-upload-quote-general').addEventListener('click', () => {
                 if (!item.suppliers || item.suppliers.length === 0) {
-                    showToast('Please add at least one supplier first!', 'warning');
+                    showToast(t('toast_add_supplier_first'), 'warning');
                     return;
                 }
 
@@ -24283,7 +24283,7 @@ Best regards`)}</textarea>
         }
 
         function exportSingleItem(item) {
-            if (typeof XLSX === 'undefined') { showToast('Excel lib missing', 'error'); return; }
+            if (typeof XLSX === 'undefined') { showToast(t('toast_xlsx_not_loaded'), 'error'); return; }
 
             const data = [];
             data.push(['Item Details']);
@@ -24651,10 +24651,10 @@ Best regards`)}</textarea>
         async function deleteCurrentItem() {
             if (currentDetailIndex === null) return;
             const confirmed = await window.showConfirmDialog({
-                title: 'Delete Item',
-                message: 'Are you sure you want to delete this item?',
+                title: t('dialog_delete_item'),
+                message: t('dialog_delete_item_msg'),
                 type: 'danger',
-                okText: 'Delete',
+                okText: t('btn_delete'),
                 cancelText: 'Cancel'
             });
             if (!confirmed) return;
@@ -24692,14 +24692,14 @@ Best regards`)}</textarea>
 
         function exportToExcel() {
             if (!currentProject || !currentProject.items || currentProject.items.length === 0) {
-                if (window.showToast) window.showToast('No data to export!', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_data_export'), 'warning');
                 return;
             }
             if (typeof XLSX === 'undefined') {
                 ensureXLSXLoaded((ok) => {
                     if (!ok) {
                         exportToCSVItems();
-                        showToast('XLSX not available. Exported CSV instead (works offline).', 'info');
+                        showToast(t('toast_csv_fallback'), 'info');
                         return;
                     }
                     exportToExcel();
@@ -24722,7 +24722,7 @@ Best regards`)}</textarea>
 
         function exportToCSVItems() {
             if (!currentProject || !Array.isArray(currentProject.items) || currentProject.items.length === 0) {
-                if (window.showToast) window.showToast('No data to export!', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_data_export'), 'warning');
                 return;
             }
             const headers = FIELDS.map(f => f.label);
@@ -24757,7 +24757,7 @@ Best regards`)}</textarea>
                     const text = String(ev.target.result || '');
                     const lines = text.split(/\r?\n/).filter(l => l && l.trim() !== '');
                     if (lines.length < 2) {
-                        showToast('CSV/TSV file is empty or invalid.', 'error');
+                        showToast(t('toast_csv_invalid'), 'error');
                         fileImportExcel.value = '';
                         return;
                     }
@@ -24829,7 +24829,7 @@ Best regards`)}</textarea>
             if (typeof XLSX === 'undefined') {
                 ensureXLSXLoaded((ok) => {
                     if (!ok) {
-                        showToast('Excel (XLSX) library not loaded. Tip: save your sheet as CSV and import it (CSV import works offline).', 'warning');
+                        showToast(t('toast_xlsx_use_csv'), 'warning');
                         fileImportExcel.value = '';
                         return;
                     }
@@ -24848,7 +24848,7 @@ Best regards`)}</textarea>
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 if (!jsonData || jsonData.length < 2) {
-                    showToast('Excel file is empty or invalid format.', 'error');
+                    showToast(t('toast_excel_invalid'), 'error');
                     fileImportExcel.value = '';
                     return;
                 }
@@ -24904,7 +24904,7 @@ Best regards`)}</textarea>
 
             const processData = (rows) => {
                 if (!rows || rows.length < 2) {
-                    showToast('File is empty or invalid. Expected columns: Item, Target Price, Currency (optional)', 'error');
+                    showToast(t('toast_file_invalid_columns'), 'error');
                     if (fileInput) fileInput.value = '';
                     return;
                 }
@@ -24998,7 +24998,7 @@ Best regards`)}</textarea>
             if (typeof XLSX === 'undefined') {
                 ensureXLSXLoaded((ok) => {
                     if (!ok) {
-                        showToast('Excel (XLSX) library not loaded. Try CSV format instead.', 'warning');
+                        showToast(t('toast_xlsx_use_csv'), 'warning');
                         if (fileInput) fileInput.value = '';
                         return;
                     }
@@ -25031,7 +25031,7 @@ Best regards`)}</textarea>
             if (index !== -1) {
                 openDetailWindow(index);
             } else {
-                showToast('Item not found in this project', 'warning');
+                showToast(t('toast_item_not_in_project'), 'warning');
             }
         };
 
@@ -25041,16 +25041,16 @@ Best regards`)}</textarea>
                 openProject(proj);
                 switchView('dashboard');
             } else {
-                showToast('Project not found', 'warning');
+                showToast(t('toast_project_not_found'), 'warning');
             }
         };
 
         window.bulkUpdateSupplier = async (supplierName, type, value) => {
             const confirmed = await window.showConfirmDialog({
-                title: 'Bulk Update',
-                message: `Are you sure you want to update all items for ${supplierName}?`,
+                title: t('dialog_bulk_update'),
+                message: t('dialog_bulk_update_msg', supplierName),
                 type: 'question',
-                okText: 'Update All',
+                okText: t('btn_update_all'),
                 cancelText: 'Cancel'
             });
             if (!confirmed) return;
@@ -25179,10 +25179,10 @@ Best regards`)}</textarea>
             if (selectedIndices.length === 0) return;
 
             const confirmed = await window.showConfirmDialog({
-                title: 'Change Status',
-                message: `Change status to "${newStatus}" for ${selectedIndices.length} items?`,
+                title: t('dialog_change_status'),
+                message: t('dialog_change_status_msg', newStatus, selectedIndices.length),
                 type: 'question',
-                okText: 'Change',
+                okText: t('btn_change'),
                 cancelText: 'Cancel'
             });
             if (!confirmed) {
@@ -25233,16 +25233,16 @@ Best regards`)}</textarea>
             if (itemsToExport.length === 0) return;
 
             const confirmed = await window.showConfirmDialog({
-                title: 'Export Selected Items',
-                message: `Export ${itemsToExport.length} items to Excel?`,
+                title: t('dialog_export_items'),
+                message: t('dialog_export_items_msg', itemsToExport.length),
                 type: 'question',
-                okText: 'Export',
+                okText: t('btn_export'),
                 cancelText: 'Cancel'
             });
             if (!confirmed) return;
 
             if (typeof XLSX === 'undefined') {
-                showToast('Excel library not loaded. Fix: include XLSX (xlsx.full.min.js) or open with internet (CDN).', 'error');
+                showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -25270,24 +25270,24 @@ Best regards`)}</textarea>
             if (selectedIndices.length === 0) return;
 
             const confirmed = await window.showConfirmDialog({
-                title: 'Delete Items',
-                message: `You are about to permanently delete ${selectedIndices.length} item(s) from this project.\n\nThis action cannot be undone.`,
+                title: t('dialog_delete_items'),
+                message: t('dialog_delete_items_msg', selectedIndices.length),
                 type: 'danger',
-                okText: 'Continue to Delete',
-                cancelText: 'Cancel'
+                okText: t('btn_continue_delete'),
+                cancelText: t('btn_cancel')
             });
             if (!confirmed) return;
 
             const typed = await window.showPromptDialog({
-                title: 'Type to Confirm Deletion',
-                message: `Type "DELETE" to confirm deletion of ${selectedIndices.length} item(s):`,
+                title: t('dialog_type_delete'),
+                message: t('dialog_type_delete_msg', selectedIndices.length),
                 placeholder: 'DELETE',
-                okText: 'Delete Permanently',
+                okText: t('btn_delete_permanently'),
                 cancelText: 'Cancel'
             });
             if (typed !== 'DELETE') {
                 if (typed !== null) {
-                    showToast('Deletion cancelled — you must type exactly "DELETE"', 'warning');
+                    showToast(t('toast_deletion_cancelled'), 'warning');
                 }
                 return;
             }
@@ -25562,7 +25562,7 @@ Best regards`)}</textarea>
 
             if (btnExportSupplier) {
                 btnExportSupplier.onclick = () => {
-                    showToast('Export Supplier Data feature - Coming soon!', 'info');
+                    showToast(t('toast_coming_soon'), 'info');
                 };
             }
 
@@ -25618,7 +25618,7 @@ Best regards`)}</textarea>
                 website: document.getElementById('sup-contact-website').value
             };
             saveSupplierData(name, data);
-            showToast('Contact information saved!', 'success');
+            showToast(t('toast_contact_saved'), 'success');
         };
 
         window.addSupplierNote = (name) => {
@@ -25798,7 +25798,7 @@ Best regards`)}</textarea>
                 }
             } catch (e) {
                 console.error('Uložit detail failed', e);
-                showToast('Uložit failed: ' + (e && e.message ? e.message : String(e)), 'error');
+                showToast(t('toast_save_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error');
             }
         }
 
@@ -25914,15 +25914,15 @@ Best regards`)}</textarea>
         window.deleteCurrentSupplier = async function () {
             const supName = currentViewedSupplier;
             if (!supName || !currentProject) {
-                if (window.showToast) window.showToast('No supplier selected', 'error');
+                if (window.showToast) window.showToast(t('toast_no_supplier'), 'error');
                 return;
             }
 
             const confirmed = await window.showConfirmDialog({
-                title: 'Delete Supplier',
-                message: `Are you sure you want to delete supplier "${supName}" from this project?\n\nThis will:\n- Remove from supplier master list\n- Remove from all items in this project`,
+                title: t('dialog_delete_supplier'),
+                message: t('dialog_delete_supplier_msg', supName),
                 type: 'danger',
-                okText: 'Delete',
+                okText: t('btn_delete'),
                 cancelText: 'Cancel'
             });
             if (!confirmed) return;
@@ -25966,14 +25966,14 @@ Best regards`)}</textarea>
         // Merge suppliers (rename all occurrences of oldName to newName)
         window.mergeSuppliers = function (oldName, newName) {
             if (!currentProject) {
-                if (window.showToast) window.showToast('No project selected', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_project'), 'warning');
                 return false;
             }
 
             const normOld = String(oldName || '').trim().toLowerCase();
             const normNew = String(newName || '').trim();
             if (!normOld || !normNew) {
-                showToast('Invalid supplier names', 'error');
+                showToast(t('toast_invalid_supplier_names'), 'error');
                 return false;
             }
 
@@ -26035,7 +26035,7 @@ Best regards`)}</textarea>
         // Open merge dialog
         window.openMergeSuppliersDialog = async function () {
             if (!currentProject) {
-                if (window.showToast) window.showToast('No project selected', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_project'), 'warning');
                 return;
             }
 
@@ -26060,26 +26060,26 @@ Best regards`)}</textarea>
 
             const sortedSuppliers = Array.from(suppliers).sort();
             if (sortedSuppliers.length < 2) {
-                showToast('Need at least 2 suppliers to merge', 'warning');
+                showToast(t('toast_need_2_suppliers'), 'warning');
                 return;
             }
 
             const fromName = await window.showPromptDialog({
-                title: 'Merge Suppliers - Step 1',
-                message: 'Enter supplier name to REMOVE (source):\n\nAvailable: ' + sortedSuppliers.join(', '),
-                placeholder: 'Source supplier name'
+                title: t('dialog_merge_step1'),
+                message: t('dialog_merge_step1_msg') + ':\n\n' + sortedSuppliers.join(', '),
+                placeholder: t('ph_source_supplier')
             });
             if (!fromName) return;
 
             const toName = await window.showPromptDialog({
-                title: 'Merge Suppliers - Step 2',
-                message: 'Enter supplier name to KEEP (target):\n\nAll occurrences of "' + fromName + '" will be renamed to this.',
+                title: t('dialog_merge_step2'),
+                message: t('dialog_merge_step2_msg', fromName),
                 placeholder: 'Target supplier name'
             });
             if (!toName) return;
 
             if (fromName.toLowerCase() === toName.toLowerCase()) {
-                showToast('Source and target names are the same', 'error');
+                showToast(t('toast_same_names'), 'error');
                 return;
             }
 
@@ -27059,7 +27059,7 @@ Best regards`)}</textarea>
                         }
                     } else {
                         try { if (typeof openItemInProject === 'function') openItemInProject(projId, dn); } catch (e) { }
-                        showToast('Item not found in project.', 'warning');
+                        showToast(t('toast_item_not_in_project'), 'warning');
                     }
                 });
             });
@@ -27441,7 +27441,7 @@ Best regards`)}</textarea>
         // Comment Modal functions
         function openPlannerCommentModal() {
             if (plannerState.selectedItems.size === 0) {
-                if (window.showToast) window.showToast('Please select at least one item', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_items'), 'warning');
                 return;
             }
             const modal = document.getElementById('planner-comment-modal');
@@ -27462,7 +27462,7 @@ Best regards`)}</textarea>
             const newStatus = document.getElementById('planner-comment-status')?.value || '';
 
             if (!commentText && !newStatus) {
-                showToast('Please enter a comment or select a status', 'warning');
+                showToast(t('toast_enter_comment_status'), 'warning');
                 return;
             }
 
@@ -27537,7 +27537,7 @@ Best regards`)}</textarea>
             const assignMode = document.getElementById('add-supplier-assign')?.value || 'none';
 
             if (!name) {
-                showToast('Please enter a supplier name', 'warning');
+                showToast(t('toast_enter_supplier_name'), 'warning');
                 return;
             }
 
@@ -28048,13 +28048,13 @@ Best regards`)}</textarea>
             const items = Array.isArray(currentProject.items) ? currentProject.items : [];
             const item = items.find(it => (it.item_drawing_no || it.drawing_no) === dn);
             if (!item) {
-                showToast('Item not found: ' + dn, 'warning');
+                showToast(t('toast_item_not_found') + ': ' + dn, 'warning');
                 return;
             }
 
             const supData = _findSupplierOnItem(item, supplierName);
             if (!supData) {
-                showToast('Supplier not found on this item', 'warning');
+                showToast(t('toast_supplier_not_found_item'), 'warning');
                 return;
             }
 
@@ -28189,14 +28189,14 @@ Best regards`)}</textarea>
             const items = Array.isArray(currentProject.items) ? currentProject.items : [];
             const item = items[idx];
             if (!item) {
-                showToast('Item not found at index: ' + idx, 'warning');
+                showToast(t('toast_item_not_found') + ': ' + idx, 'warning');
                 return;
             }
 
             const dn = item.item_drawing_no || item.drawing_no || `Item #${idx + 1}`;
             const supData = _findSupplierOnItem(item, supplierName);
             if (!supData) {
-                showToast('Supplier not found on this item', 'warning');
+                showToast(t('toast_supplier_not_found_item'), 'warning');
                 return;
             }
 
@@ -28384,7 +28384,7 @@ Best regards`)}</textarea>
         // Export RFQ to Excel (all items for supplier)
         function exportRFQExcel() {
             if (!plannerSelectedSupplier || !currentProject) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
 
@@ -28407,7 +28407,7 @@ Best regards`)}</textarea>
             });
 
             if (supplierItems.length === 0) {
-                if (window.showToast) window.showToast('No items to export', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_export'), 'warning');
                 return;
             }
 
@@ -28417,7 +28417,7 @@ Best regards`)}</textarea>
         // Export selected items to Excel
         function exportSelectedToExcel(changeStatusToSent = false) {
             if (!plannerSelectedSupplier || !currentProject) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
 
@@ -28432,7 +28432,7 @@ Best regards`)}</textarea>
             }
 
             if (plannerState.selectedItems.size === 0) {
-                if (window.showToast) window.showToast('No items selected', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_selected'), 'warning');
                 return;
             }
 
@@ -28458,7 +28458,7 @@ Best regards`)}</textarea>
             });
 
             if (supplierItems.length === 0) {
-                if (window.showToast) window.showToast('No items to export', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_export'), 'warning');
                 return;
             }
 
@@ -28473,7 +28473,7 @@ Best regards`)}</textarea>
         // Export selected items to PDF
         function exportSelectedToPDF(changeStatusToSent = false) {
             if (!plannerSelectedSupplier || !currentProject) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
 
@@ -28488,7 +28488,7 @@ Best regards`)}</textarea>
             }
 
             if (plannerState.selectedItems.size === 0) {
-                if (window.showToast) window.showToast('No items selected', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_selected'), 'warning');
                 return;
             }
 
@@ -28514,7 +28514,7 @@ Best regards`)}</textarea>
             });
 
             if (supplierItems.length === 0) {
-                if (window.showToast) window.showToast('No items to export', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_export'), 'warning');
                 return;
             }
 
@@ -28529,7 +28529,7 @@ Best regards`)}</textarea>
         // Internal function to create and download Excel file
         function _exportItemsToExcel(supplierItems, supplierName, prefix) {
             if (typeof XLSX === 'undefined') {
-                if (window.showToast) window.showToast('Excel library not loaded. Please refresh the page.', 'error');
+                if (window.showToast) window.showToast(t('toast_xlsx_refresh'), 'error');
                 return;
             }
 
@@ -28608,7 +28608,7 @@ Best regards`)}</textarea>
             const filename = prefix + '_' + supplierName.replace(/[^a-zA-Z0-9]/g, '_') + '_' + date + '.xlsx';
             XLSX.writeFile(wb, filename);
 
-            showToast('Excel file exported: ' + filename, 'success');
+            showToast(t('toast_excel_exported', filename), 'success');
         }
 
         // Internal function to create and download PDF file
@@ -28752,7 +28752,7 @@ Best regards`)}</textarea>
                 printWindow.print();
             }, 500);
 
-            showToast('PDF ready for printing/saving', 'success');
+            showToast(t('toast_pdf_ready'), 'success');
         }
 
 
@@ -28760,7 +28760,7 @@ Best regards`)}</textarea>
         // RFQ Detail Modal for entering prices
         function openRFQDetailModal(supplierName) {
             if (!supplierName || !currentProject) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
 
@@ -28846,7 +28846,7 @@ Best regards`)}</textarea>
             });
 
             if (supplierItems.length === 0) {
-                showToast('No items assigned to this supplier. Assign items first in Item Detail → Sourcing Strategy.', 'warning');
+                showToast(t('toast_no_items_assigned'), 'warning');
                 return;
             }
 
@@ -29219,7 +29219,7 @@ Best regards`)}</textarea>
             });
 
             if (linesToSend.length === 0) {
-                showToast('No items with prices to sync', 'warning');
+                showToast(t('toast_no_items_sync'), 'warning');
                 return;
             }
 
@@ -29260,12 +29260,12 @@ Best regards`)}</textarea>
                     renderPlannerItemsForSupplier(supplierName);
                     showToast(`Quote ${res.quote_number} ${res.is_update ? 'updated' : 'created'} (${res.lines_count} items)`, 'success');
                 } else {
-                    showToast('Quote sync failed: ' + (res.error || 'Unknown error'), 'error');
+                    showToast(t('toast_sync_failed') + ': ' + (res.error || t('toast_unknown_error')), 'error');
                 }
             })
             .catch(err => {
                 console.error('Quote sync error:', err);
-                showToast('Quote sync error: ' + err.message, 'error');
+                showToast(t('toast_sync_failed') + ': ' + err.message, 'error');
             });
         }
 
@@ -29942,7 +29942,7 @@ Best regards`)}</textarea>
 
                     const name = (nameInput?.value || '').trim();
                     if (!name) {
-                        showToast('Please enter supplier name', 'warning');
+                        showToast(t('toast_enter_supplier_name'), 'warning');
                         return;
                     }
 
@@ -30294,7 +30294,7 @@ Best regards`)}</textarea>
         // Export template Excel for supplier assignment
         function exportSSTemplate() {
             if (!currentProject || !window.XLSX) {
-                showToast('Excel library not loaded or no project selected.', 'error');
+                showToast(t('toast_xlsx_or_no_project'), 'error');
                 return;
             }
 
@@ -30383,7 +30383,7 @@ Best regards`)}</textarea>
         // Process imported file
         function processSSImportFile(file) {
             if (!window.XLSX) {
-                if (window.showToast) window.showToast('Excel library not loaded. Please refresh the page.', 'error');
+                if (window.showToast) window.showToast(t('toast_xlsx_refresh'), 'error');
                 return;
             }
 
@@ -30404,7 +30404,7 @@ Best regards`)}</textarea>
                     showSSImportPreview(file.name, parsed);
                 } catch (err) {
                     console.error('Import error:', err);
-                    showToast('Failed to parse file: ' + err.message, 'error');
+                    showToast(t('toast_parse_failed') + ': ' + err.message, 'error');
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -31382,11 +31382,11 @@ Best regards`)}</textarea>
         // Reset notification status
         window.resetNotificationStatus = function (supplierName) {
             window.showConfirmDialog({
-                title: 'Reset Status',
-                message: `Are you sure you want to reset notification status for ${supplierName}?`,
+                title: t('dialog_reset_status'),
+                message: t('dialog_reset_status_msg', supplierName),
                 type: 'warning',
-                okText: 'Reset',
-                cancelText: 'Cancel'
+                okText: t('btn_reset'),
+                cancelText: t('btn_cancel')
             }).then((confirmed) => {
                 if (!confirmed) return;
 
@@ -31426,7 +31426,7 @@ Best regards`)}</textarea>
 
             const textarea = document.getElementById('new-comment-text');
             if (!textarea || !textarea.value.trim()) {
-                if (window.showToast) window.showToast('Please enter a note', 'warning');
+                if (window.showToast) window.showToast(t('toast_enter_note'), 'warning');
                 return;
             }
 
@@ -31444,14 +31444,14 @@ Best regards`)}</textarea>
             document.getElementById('non-awarded-detail-modal')?.remove();
             window.showNonAwardedDetail(supplierName);
 
-            if (window.showToast) window.showToast('Note added', 'success');
+            if (window.showToast) window.showToast(t('toast_note_added'), 'success');
         };
 
         // Clear comment history
         window.clearSupplierComments = function (supplierName) {
             window.showConfirmDialog({
-                title: 'Clear History',
-                message: 'Are you sure you want to delete all history logs?',
+                title: t('dialog_clear_history'),
+                message: t('dialog_clear_history_msg'),
                 type: 'warning'
             }).then(confirmed => {
                 if (!confirmed) return;
@@ -31465,7 +31465,7 @@ Best regards`)}</textarea>
                 document.getElementById('non-awarded-detail-modal')?.remove();
                 window.showNonAwardedDetail(supplierName);
 
-                if (window.showToast) window.showToast('History cleared', 'success');
+                if (window.showToast) window.showToast(t('toast_history_cleared'), 'success');
             });
         };
 
@@ -31538,7 +31538,7 @@ Best regards`)}</textarea>
             const notes = document.getElementById('challenge-notes').value;
 
             if (!reason) {
-                if (window.showToast) window.showToast('Please select a reason', 'error');
+                if (window.showToast) window.showToast(t('toast_select_reason'), 'error');
                 return;
             }
 
@@ -31580,11 +31580,11 @@ Best regards`)}</textarea>
             if (!data) return;
 
             window.showConfirmDialog({
-                title: 'Resolve Challenge',
-                message: `Resolve challenge for ${supplierName}?\nThis will reset status to pending.`,
+                title: t('dialog_resolve_challenge'),
+                message: t('dialog_resolve_challenge_msg', supplierName),
                 type: 'question',
-                okText: 'Resolve',
-                cancelText: 'Cancel'
+                okText: t('btn_resolve'),
+                cancelText: t('btn_cancel')
             }).then((confirmed) => {
                 if (!confirmed) return;
 
@@ -31606,7 +31606,7 @@ Best regards`)}</textarea>
                 // Refresh list
                 if (window.refreshNonAwardedSuppliers) window.refreshNonAwardedSuppliers();
 
-                if (window.showToast) window.showToast('Challenge resolved', 'success');
+                if (window.showToast) window.showToast(t('toast_challenge_resolved'), 'success');
             }
             );
         };
@@ -31804,7 +31804,7 @@ Best regards`)}</textarea>
         window.showExportOptionsDialog = function (supplierName, isNotification = false) {
             const data = window.fsState.nonAwardedData?.get(supplierName);
             if (!data || data.items.length === 0) {
-                if (window.showToast) window.showToast('No items found for this supplier', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_items_supplier'), 'warning');
                 return;
             }
 
@@ -31972,7 +31972,7 @@ Best regards`)}</textarea>
             });
 
             exportDocToExcel(`NonAwarded_${supplierName.replace(/[^a-zA-Z0-9]/g, '_')}`, exportData, data.totalQuoted);
-            if (window.showToast) showToast('Exported non-awarded detail', 'success');
+            if (window.showToast) showToast(t('toast_exported_non_awarded'), 'success');
 
             // Clear export options after use
             window.fsState.exportOptions = null;
@@ -32153,7 +32153,7 @@ Best regards`;
                         window.exportNotificationExcel(supplierName, data);
                     } catch (error) {
                         console.error('[Modal] Error calling exportNotificationExcel:', error);
-                        if (window.showToast) showToast('Error: ' + error.message, 'error');
+                        if (window.showToast) showToast(t('toast_error') + ': ' + error.message, 'error');
                     }
                 }, { capture: true });
             }
@@ -32178,14 +32178,14 @@ Best regards`;
             // Mailto link
             window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
 
-            if (window.showToast) showToast('Opened default mail client', 'info');
+            if (window.showToast) showToast(t('toast_mail_opened'), 'info');
 
             // Notification tracking integration with Custom Dialog
             if (window.showConfirmDialog) {
                 setTimeout(() => {
                     window.showConfirmDialog(
-                        'Confirm Notification',
-                        `Did you send the notification to ${supplier}?\nMark as 'Notified' now?`,
+                        t('dialog_confirm_notification'),
+                        t('dialog_confirm_notification_msg', supplier),
                         () => {
                             window.markSupplierNotified(supplier);
                             // Refresh list immediately
@@ -32263,7 +32263,7 @@ Best regards`;
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            if (window.showToast) showToast('Word document downloaded', 'success');
+            if (window.showToast) showToast(t('toast_word_downloaded'), 'success');
         };
 
         // NEW: Print Notification
@@ -32274,7 +32274,7 @@ Best regards`;
 
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for printing', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -32359,7 +32359,7 @@ Best regards`;
 
             if (typeof XLSX === 'undefined') {
                 console.error('[Excel Export] XLSX library not loaded!');
-                if (window.showToast) showToast('Excel library not loaded. Please refresh the page.', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_refresh'), 'error');
                 return;
             }
 
@@ -32422,10 +32422,10 @@ Best regards`;
                 XLSX.writeFile(wb, `Notification_${supplier}_${projectName}.xlsx`);
 
                 console.log('[Excel Export] Complete!');
-                if (window.showToast) showToast('Excel file downloaded', 'success');
+                if (window.showToast) showToast(t('toast_excel_downloaded'), 'success');
             } catch (error) {
                 console.error('[Excel Export] Error:', error);
-                if (window.showToast) showToast('Excel export failed: ' + error.message, 'error');
+                if (window.showToast) showToast(t('toast_export_failed') + ': ' + error.message, 'error');
             }
         };
 
@@ -32437,7 +32437,7 @@ Best regards`;
 
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for PDF export', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -32555,7 +32555,7 @@ Best regards`;
 
             printWindow.document.close();
 
-            if (window.showToast) showToast('PDF print dialog opened', 'info');
+            if (window.showToast) showToast(t('toast_pdf_dialog'), 'info');
         };
 
 
@@ -32569,7 +32569,7 @@ Best regards`;
             const notificationText = textArea ? textArea.value : '';
 
             if (!notificationText.trim()) {
-                if (window.showToast) window.showToast('Please enter notification text', 'warning');
+                if (window.showToast) window.showToast(t('toast_enter_notification'), 'warning');
                 return;
             }
 
@@ -32637,7 +32637,7 @@ Best regards`;
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            if (window.showToast) window.showToast('ODF document generated successfully', 'success');
+            if (window.showToast) window.showToast(t('toast_odf_generated'), 'success');
             document.getElementById('loser-notification-modal')?.remove();
 
             // Clear export options after use
@@ -32649,7 +32649,7 @@ Best regards`;
         window.exportCurrentSupplierItems = function (format) {
             const supplier = window.fsState.selectedSupplier;
             if (!supplier) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
             window.exportSupplierItems(supplier, format);
@@ -32659,7 +32659,7 @@ Best regards`;
         window.openLOIGeneratorForSelected = function () {
             const supplier = window.fsState.selectedSupplier;
             if (!supplier) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
             window.openLOIGenerator(supplier);
@@ -32669,7 +32669,7 @@ Best regards`;
         window.exportAllSummary = function (format) {
             const supplierGroups = window.fsState.supplierGroups;
             if (!supplierGroups || supplierGroups.size === 0) {
-                if (window.showToast) window.showToast('No data to export', 'warning');
+                if (window.showToast) window.showToast(t('toast_no_data_export'), 'warning');
                 return;
             }
 
@@ -33073,12 +33073,12 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             }
 
             document.getElementById('loi-generator-modal')?.remove();
-            if (window.showToast) showToast('LOI generated!', 'success');
+            if (window.showToast) showToast(t('toast_loi_generated'), 'success');
         };
 
         function exportLOIToExcel(supplier, supplierData, data, terms) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -33112,7 +33112,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         function exportLOIToPDF(supplier, supplierData, data, headers, terms) {
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for PDF export', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -33226,7 +33226,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         window.openSupplierChallenge = function (supplier) {
             const supplierData = window.fsState.supplierGroups?.get(supplier);
             if (!supplierData) {
-                if (window.showToast) window.showToast('Please select a supplier first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 return;
             }
 
@@ -33572,7 +33572,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             document.getElementById('challenge-modal')?.remove();
             renderFinalSummary();
-            if (window.showToast) showToast('Challenge created & exported!', 'success');
+            if (window.showToast) showToast(t('toast_challenge_created'), 'success');
         };
 
         // Preview challenge as PDF
@@ -33595,7 +33595,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             });
 
             if (challengeItems.length === 0) {
-                if (window.showToast) showToast('Please select at least one item', 'warning');
+                if (window.showToast) showToast(t('toast_select_items'), 'warning');
                 return;
             }
 
@@ -33962,7 +33962,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             renderFinalSummary();
             window.openChallengeDetail(challengeIdx);
 
-            if (window.showToast) showToast('New quote recorded and linked to Sourcing Strategy!', 'success');
+            if (window.showToast) showToast(t('toast_quote_recorded'), 'success');
         };
 
         // Approve challenge - accept new prices
@@ -34000,7 +34000,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             if (typeof updateProject === 'function') updateProject(currentProject);
             document.getElementById('challenge-detail-modal')?.remove();
             renderFinalSummary();
-            if (window.showToast) showToast('Challenge approved! Prices updated.', 'success');
+            if (window.showToast) showToast(t('toast_challenge_approved'), 'success');
         };
 
         // Decline challenge
@@ -34033,7 +34033,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             if (typeof updateProject === 'function') updateProject(currentProject);
             document.getElementById('challenge-detail-modal')?.remove();
             renderFinalSummary();
-            if (window.showToast) showToast('Challenge declined.', 'info');
+            if (window.showToast) showToast(t('toast_challenge_declined'), 'info');
         };
 
         window.addChallengeComment = function (idx) {
@@ -34114,7 +34114,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
         function exportChallengeToExcel(challenge, data, totalCurrent, totalTarget, savings) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -34156,7 +34156,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         function exportChallengeToPDF(challenge, data, totalCurrent, totalTarget, savings) {
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for PDF export', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -34265,12 +34265,12 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 return itemDn === dn;
             });
             if (!item) {
-                if (window.showToast) showToast('Item not found', 'error');
+                if (window.showToast) showToast(t('toast_item_not_found'), 'error');
                 return;
             }
             const supplier = item.supplier || item.awarded_supplier;
             if (!supplier) {
-                if (window.showToast) showToast('Item has no awarded supplier', 'warning');
+                if (window.showToast) showToast(t('toast_no_awarded_supplier'), 'warning');
                 return;
             }
             // Open challenge with this specific item pre-selected
@@ -34284,7 +34284,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 // No items selected, challenge all items for selected supplier
                 const supplier = window.fsState.selectedSupplier;
                 if (!supplier) {
-                    if (window.showToast) showToast('Please select a supplier first', 'warning');
+                    if (window.showToast) showToast(t('toast_select_supplier'), 'warning');
                     return;
                 }
                 window.openSupplierChallenge(supplier);
@@ -34305,12 +34305,12 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             });
 
             if (supplierItems.size === 0) {
-                if (window.showToast) showToast('Selected items have no supplier', 'warning');
+                if (window.showToast) showToast(t('toast_items_no_supplier'), 'warning');
                 return;
             }
 
             if (supplierItems.size > 1) {
-                if (window.showToast) showToast('Please select items from only one supplier', 'warning');
+                if (window.showToast) showToast(t('toast_one_supplier_only'), 'warning');
                 return;
             }
 
@@ -34323,7 +34323,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         window.openSupplierChallengeWithItems = function (supplier, selectedDns) {
             const supplierData = window.fsState.supplierGroups?.get(supplier);
             if (!supplierData) {
-                if (window.showToast) showToast('Supplier data not found', 'error');
+                if (window.showToast) showToast(t('toast_supplier_data_not_found'), 'error');
                 return;
             }
 
@@ -34428,7 +34428,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         // Styled Excel export
         function exportToStyledExcel(data, filename, title, totalValue) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -34472,7 +34472,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             // Create a printable HTML document
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for PDF export', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -34620,7 +34620,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         // Full export function with all qty/price columns
         function exportToExcelFull(data, filename, notes) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -34977,7 +34977,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             closeChallengeModal();
             renderFinalSummary();
-            if (window.showToast) showToast('Challenge sent!', 'success');
+            if (window.showToast) showToast(t('toast_challenge_sent'), 'success');
         }
 
         // Response Modal Functions
@@ -35039,7 +35039,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             closeResponseModal();
             renderFinalSummary();
-            if (window.showToast) showToast('Response recorded & price updated!', 'success');
+            if (window.showToast) showToast(t('toast_response_recorded'), 'success');
         }
 
         // Document Modal Functions
@@ -35134,7 +35134,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             document.getElementById('add-doc-modal')?.remove();
             renderFinalSummary();
-            if (window.showToast) showToast('Document added!', 'success');
+            if (window.showToast) showToast(t('toast_doc_added'), 'success');
         };
 
         // Document Generation Functions
@@ -35255,7 +35255,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
         function exportDocToExcel(docType, data, totalValue) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -35282,7 +35282,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         function exportDocToPDF(docType, data, totalValue) {
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                if (window.showToast) showToast('Please allow popups for PDF export', 'error');
+                if (window.showToast) showToast(t('toast_allow_popups'), 'error');
                 return;
             }
 
@@ -35429,7 +35429,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             });
 
             if (loserData.size === 0) {
-                if (window.showToast) showToast('No non-awarded suppliers found', 'info');
+                if (window.showToast) showToast(t('toast_no_non_awarded'), 'info');
                 return;
             }
 
@@ -35528,12 +35528,12 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             }));
 
             exportToExcelFull(data, `Final_Summary_${currentProject.name || 'Project'}`);
-            if (window.showToast) showToast('Summary exported!', 'success');
+            if (window.showToast) showToast(t('toast_summary_exported'), 'success');
         }
 
         function exportToExcel(data, filename) {
             if (!window.XLSX) {
-                if (window.showToast) showToast('Excel library not loaded', 'error');
+                if (window.showToast) showToast(t('toast_xlsx_not_loaded'), 'error');
                 return;
             }
 
@@ -36267,10 +36267,10 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     if (!newStatus || pcSelectedItems.size === 0) return;
                     const count = pcSelectedItems.size;
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Change Status',
-                        message: `Change status to "${newStatus}" for ${count} items in Price Comparison?`,
+                        title: t('dialog_change_status'),
+                        message: t('dialog_change_status_msg', newStatus, count),
                         type: 'question',
-                        okText: 'Change',
+                        okText: t('btn_change'),
                         cancelText: 'Cancel'
                     });
                     if (!confirmed) { bulkStatusSelect.value = ''; return; }
@@ -36303,10 +36303,10 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     if (pcSelectedItems.size === 0) return;
                     const count = pcSelectedItems.size;
                     const confirmed = await window.showConfirmDialog({
-                        title: 'Unselect Main Supplier',
-                        message: `Remove the main supplier assignment from ${count} items?\n\nThis will clear the selected supplier for all checked items.`,
+                        title: t('dialog_unselect_supplier'),
+                        message: t('dialog_unselect_supplier_msg', count),
                         type: 'danger',
-                        okText: 'Unselect All',
+                        okText: t('btn_unselect_all'),
                         cancelText: 'Cancel'
                     });
                     if (!confirmed) return;
@@ -36384,7 +36384,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                             updateProject(currentProject);
                         }
                     }
-                    showToast('✅ Changes saved');
+                    showToast(t('toast_changes_saved'));
                     pcSelectedItems.clear();
                     renderItemComparison();
                 });
@@ -36727,7 +36727,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 const supplierName = newValue || selectValue;
 
                 if (!supplierName) {
-                    showToast('Please select or enter a supplier name', 'warning');
+                    showToast(t('toast_enter_supplier'), 'warning');
                     return;
                 }
 
@@ -36779,7 +36779,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             });
 
             if (suppliersSet.size === 0) {
-                showToast('No suppliers linked to selected items. Link suppliers first.', 'warning');
+                showToast(t('toast_no_linked_suppliers'), 'warning');
                 return;
             }
 
@@ -36823,7 +36823,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 const supplierName = modal.querySelector('#bulk-main-supplier-select').value;
 
                 if (!supplierName) {
-                    showToast('Please select a supplier', 'warning');
+                    showToast(t('toast_select_supplier'), 'warning');
                     return;
                 }
 
@@ -37001,7 +37001,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         // Execute the Price Comparison Export
         function executePriceComparisonExport(items, rates, format, columns, onlyWithMain, onlyWithQuotes) {
             if (typeof XLSX === 'undefined') {
-                showToast('Excel library not loaded. Please wait and try again.', 'error');
+                showToast(t('toast_xlsx_refresh'), 'error');
                 return;
             }
 
@@ -37156,7 +37156,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         // Set main supplier for an item (rank: 1=Main, 2=Second, 3=Third)
         function setSupplierRankForItem(itemIdx, supplierName, rank) {
             if (!currentProject || !currentProject.items || !currentProject.items[itemIdx]) {
-                showToast('Item not found', 'warning');
+                showToast(t('toast_item_not_found'), 'warning');
                 return;
             }
 
@@ -37210,7 +37210,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     try { renderMainOverview(); } catch (e) { }
                 }
             } else {
-                showToast('Supplier not found on this item', 'warning');
+                showToast(t('toast_supplier_not_found_item'), 'warning');
             }
         }
 
@@ -37222,7 +37222,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         // Unselect all ranks for a supplier
         function unselectSupplierForItem(itemIdx, supplierName) {
             if (!currentProject || !currentProject.items || !currentProject.items[itemIdx]) {
-                showToast('Item not found', 'warning');
+                showToast(t('toast_item_not_found'), 'warning');
                 return;
             }
 
@@ -37291,7 +37291,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
         function openQuoteWizard() {
             if (!currentProject) {
-                if (window.showToast) window.showToast('Select a project first', 'warning');
+                if (window.showToast) window.showToast(t('toast_select_project'), 'warning');
                 return;
             }
 
@@ -37408,7 +37408,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 quoteWizardState.supplier = supplierNew || supplierSelect;
 
                 if (!quoteWizardState.supplier) {
-                    showToast('Please select or enter a supplier name', 'warning');
+                    showToast(t('toast_enter_supplier'), 'warning');
                     return;
                 }
 
@@ -37423,7 +37423,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             if (step === 2) {
                 if (quoteWizardState.selectedItems.size === 0) {
-                    if (window.showToast) window.showToast('Please select at least one item', 'warning');
+                    if (window.showToast) window.showToast(t('toast_select_items'), 'warning');
                     return;
                 }
             }
@@ -37724,7 +37724,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 if (!currentProject) return;
                 try { syncAllBatchesToItems(currentProject); } catch (e) { }
                 try { updateProject(currentProject); } catch (e) { }
-                showToast('Synced bundles → items (Suppliers & Pricing).', 'success');
+                showToast(t('toast_synced_bundles'), 'success');
             };
         }
 
@@ -38395,15 +38395,15 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             };
 
             if (btnBundleDetailExport) btnBundleDetailExport.onclick = () => {
-                try { exportBatchCSV(b); } catch (e) { showToast('Export failed: ' + (e && e.message ? e.message : String(e)), 'error'); }
+                try { exportBatchCSV(b); } catch (e) { showToast(t('toast_export_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error'); }
             };
 
             if (btnBundleDetailDelete) btnBundleDetailDelete.onclick = async () => {
                 const confirmed = await window.showConfirmDialog({
-                    title: 'Delete RFQ Bundle',
-                    message: 'Delete this RFQ bundle?',
+                    title: t('dialog_delete_bundle'),
+                    message: t('dialog_delete_bundle_msg'),
                     type: 'danger',
-                    okText: 'Delete',
+                    okText: t('btn_delete'),
                     cancelText: 'Cancel'
                 });
                 if (!confirmed) return;
@@ -38449,8 +38449,8 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     updateProject(currentProject);
 
                     showSuccessModal({
-                        title: 'Quote Saved',
-                        message: 'Quote data has been saved successfully.',
+                        title: t('dialog_quote_saved'),
+                        message: t('dialog_quote_saved_msg'),
                         icon: '💾',
                         iconColor: '#10b981',
                         details: [
@@ -38464,7 +38464,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     renderBundleDetailPage();
                 } catch (e) {
                     console.error(e);
-                    showToast('Save failed: ' + (e && e.message ? e.message : String(e)), 'error');
+                    showToast(t('toast_save_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error');
                 }
             };
 
@@ -39463,7 +39463,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             panel.querySelector('#btn-batch-save').addEventListener('click', () => {
                 saveCurrent();
-                showToast('Saved!', 'success');
+                showToast(t('toast_saved'), 'success');
             });
 
             panel.querySelector('#btn-batch-add-item').addEventListener('click', () => {
@@ -39524,7 +39524,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 syncProjectBatchesIntoMemory(currentProject);
                 try { applyBatchToItems(currentProject, updated, 'sent'); } catch (e) { console.error('applyBatchToItems(sent) failed', e); }
                 try { updateProject(currentProject); } catch (e) { console.error('updateProject failed', e); }
-                showToast('Marked as Sent', 'success');
+                showToast(t('toast_marked_sent'), 'success');
                 openRFQBatchDetail(updated.id);
                 renderRFQHistory();
             });
@@ -39569,8 +39569,8 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 try { applyBatchToItems(currentProject, updated, 'received'); } catch (e) { console.error('applyBatchToItems(received) failed', e); }
                 try { updateProject(currentProject); } catch (e) { console.error('updateProject failed', e); }
                 showSuccessModal({
-                    title: 'Quote Received',
-                    message: 'Quote data has been saved to items.',
+                    title: t('dialog_quote_received'),
+                    message: t('dialog_quote_received_msg'),
                     icon: '📥',
                     iconColor: '#10b981',
                     details: [
@@ -39587,8 +39587,8 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 updated.status = 'Closed';
                 window.RFQData.saveRFQBatch(currentProject.id, updated);
                 showSuccessModal({
-                    title: 'Quote Closed',
-                    message: 'This quote has been marked as closed.',
+                    title: t('dialog_quote_closed'),
+                    message: t('dialog_quote_closed_msg'),
                     icon: '✓',
                     iconColor: '#6b7280'
                 });
@@ -39598,10 +39598,10 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
             panel.querySelector('#btn-batch-delete').addEventListener('click', async () => {
                 const confirmed = await window.showConfirmDialog({
-                    title: 'Delete RFQ Bundle',
-                    message: 'Delete this RFQ bundle?',
+                    title: t('dialog_delete_bundle'),
+                    message: t('dialog_delete_bundle_msg'),
                     type: 'danger',
-                    okText: 'Delete',
+                    okText: t('btn_delete'),
                     cancelText: 'Cancel'
                 });
                 if (!confirmed) return;
@@ -39749,7 +39749,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
         }
 
         function saveActiveRFQBatchFromPanel() {
-            if (!currentProject) { try { if (window.showToast) window.showToast('Select a project first', 'warning'); } catch (e) { } return null; }
+            if (!currentProject) { try { if (window.showToast) window.showToast(t('toast_select_project'), 'warning'); } catch (e) { } return null; }
             const panel = _getQuotingPanel();
             if (!panel) return null;
 
@@ -39889,7 +39889,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                 if (id === 'btn-batch-save') {
                     ev.preventDefault();
                     const b = saveActiveRFQBatchFromPanel();
-                    if (b) { try { showToast('Saved!', 'success'); } catch (e) { } }
+                    if (b) { try { showToast(t('toast_saved'), 'success'); } catch (e) { } }
                     return;
                 }
 
@@ -39909,7 +39909,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                             if (it.status === 'New') it.status = 'RFQ Sent';
                         });
                     });
-                    try { showToast('Marked as Sent', 'success'); } catch (e) { }
+                    try { showToast(t('toast_marked_sent'), 'success'); } catch (e) { }
                     return;
                 }
 
@@ -39919,7 +39919,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                         b.status = 'Quote Received';
                         b.quote_received_at = new Date().toISOString();
                     });
-                    try { showToast('Marked as Quote Received', 'success'); } catch (e) { }
+                    try { showToast(t('toast_marked_received'), 'success'); } catch (e) { }
                     return;
                 }
 
@@ -39945,11 +39945,11 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     if (!batchId) return;
                     (async () => {
                         const confirmed = await window.showConfirmDialog({
-                            title: 'Delete RFQ Bundle',
-                            message: 'Delete this RFQ bundle?',
+                            title: t('dialog_delete_bundle'),
+                            message: t('dialog_delete_bundle_msg'),
                             type: 'danger',
-                            okText: 'Delete',
-                            cancelText: 'Cancel'
+                            okText: t('btn_delete'),
+                            cancelText: t('btn_cancel')
                         });
                         if (!confirmed) return;
                         try { window.RFQData.deleteRFQBatch(currentProject.id, batchId); } catch (e) { console.error(e); }
@@ -40014,7 +40014,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
 
 
         function startRFQWizard(preselectedSupplierName = null, preselectedItemDNs = []) {
-            if (!currentProject) { if (window.showToast) window.showToast('Select a project first', 'warning'); return; }
+            if (!currentProject) { if (window.showToast) window.showToast(t('toast_select_project'), 'warning'); return; }
 
             const panel = getEl('quoting-wizard-panel');
             if (!panel) return;
@@ -40614,18 +40614,18 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     if (window.__RFQ_CREATE_BUNDLE_LOCK) return;
                     window.__RFQ_CREATE_BUNDLE_LOCK = true;
                     if (!currentProject || !currentProject.id) {
-                        showToast('Select a project first (top bar) before creating an RFQ bundle.', 'warning');
+                        showToast(t('toast_select_project_bundle'), 'warning');
                         return;
                     }
                     if (!window.RFQData || typeof window.RFQData.saveRFQBatch !== 'function') {
-                        showToast('RFQData not loaded. Please refresh (Ctrl+F5).', 'error');
+                        showToast(t('toast_rfqdata_not_loaded'), 'error');
                         return;
                     }
                     const supplierName = getSupplierName();
-                    if (!supplierName) { showToast('Select or type a supplier.', 'warning'); return; }
+                    if (!supplierName) { showToast(t('toast_select_supplier'), 'warning'); return; }
 
                     const selectedDNs = Array.from((window.__RFQ_WIZ_SELECTED || selectedDNsState || new Set())).map(x => String(x || '').trim()).filter(Boolean);
-                    if (selectedDNs.length === 0) { if (window.showToast) window.showToast('Select at least one item', 'warning'); return; }
+                    if (selectedDNs.length === 0) { if (window.showToast) window.showToast(t('toast_select_items'), 'warning'); return; }
 
                     const qv = (sel, fallback = '') => {
                         const el = panel ? panel.querySelector(sel) : null;
@@ -40732,7 +40732,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
                     openBundleDetailPage((saved && saved.id) ? saved.id : batch.id, 'quoting');
                 } catch (err) {
                     console.error('Create RFQ bundle failed', err);
-                    showToast('Create bundle failed: ' + (err && err.message ? err.message : String(err)), 'error');
+                    showToast(t('toast_create_bundle_failed') + ': ' + (err && err.message ? err.message : String(err)), 'error');
                 } finally {
                     window.__RFQ_CREATE_BUNDLE_LOCK = false;
                 }
@@ -40816,7 +40816,7 @@ This LOI is non-binding until a formal Purchase Order is issued.</textarea>
             if (!act) return;
             if (String(btn.dataset.disabled || '') === '1' || btn.getAttribute('aria-disabled') === 'true') {
                 e.preventDefault();
-                showToast('Select at least one item to create an RFQ bundle.', 'warning');
+                showToast(t('toast_select_items_bundle'), 'warning');
                 return;
             }
             const h = window.RFQWizardHandlers || {};
@@ -41113,8 +41113,8 @@ window.RFQStandalone.mount = function (rootSelectorOrEl) {
             const selectedSet = getSelectedSet();
 
             // validations with clear message
-            if (!supplierName) { ev.preventDefault(); showToast('Select a supplier.', 'warning'); return; }
-            if (selectedSet.size === 0) { ev.preventDefault(); if (window.showToast) window.showToast('Select at least one item', 'warning'); return; }
+            if (!supplierName) { ev.preventDefault(); showToast(t('toast_select_supplier'), 'warning'); return; }
+            if (selectedSet.size === 0) { ev.preventDefault(); if (window.showToast) window.showToast(t('toast_select_items'), 'warning'); return; }
 
             // allow existing handlers to run
             try {
@@ -41129,7 +41129,7 @@ window.RFQStandalone.mount = function (rootSelectorOrEl) {
                 }
             } catch (e) {
                 console.error(e);
-                showToast('Create bundle failed: ' + (e && e.message ? e.message : String(e)), 'error');
+                showToast(t('toast_create_bundle_failed') + ': ' + (e && e.message ? e.message : String(e)), 'error');
             }
         }, true);
     }
@@ -41175,7 +41175,7 @@ window.RFQStandalone.mount = function (rootSelectorOrEl) {
                 if (t.disabled) {
                     const sel = document.getElementById('bulk-supplier-select');
                     const name = sel ? String(sel.value || '').trim() : '';
-                    if (!name) if (window.showToast) window.showToast('Select supplier first', 'warning');
+                    if (!name) if (window.showToast) window.showToast(t('toast_select_supplier'), 'warning');
                 }
             }
         }, true);
@@ -41280,7 +41280,7 @@ window.openAddSignedDocumentModal = function (supplier) {
     }
 
     if (!supplier) {
-        if (window.showToast) window.showToast('Please select a supplier first\n(Click a supplier card on the left)', 'warning');
+        if (window.showToast) window.showToast(t('toast_select_supplier_card'), 'warning');
         return;
     }
 
@@ -41359,7 +41359,7 @@ window.saveSignedDocument = function (supplier) {
     const fileInput = document.getElementById('doc-file');
     // For demo/prototype, we permit saving without a file if needed, but warning is good
     if (fileInput.files.length === 0) {
-        if (window.showToast) window.showToast('Please select a file', 'warning');
+        if (window.showToast) window.showToast(t('toast_select_file'), 'warning');
         return;
     }
 
@@ -41397,7 +41397,7 @@ window.saveSignedDocument = function (supplier) {
     window.renderDocumentTracking();
     document.getElementById('signed-doc-modal').remove();
 
-    if (window.showToast) window.showToast('Document saved successfully', 'success');
+    if (window.showToast) window.showToast(t('toast_doc_saved'), 'success');
 };
 
 // Deletion logic
@@ -41405,10 +41405,10 @@ window.deleteSignedDocument = async function (docId) {
     if (!currentProject || !currentProject.final_documents) return;
 
     const confirmed = await window.showConfirmDialog({
-        title: 'Delete Document',
-        message: 'Are you sure you want to remove this document tracking entry?',
+        title: t('dialog_delete_document'),
+        message: t('dialog_delete_document_msg'),
         type: 'danger',
-        okText: 'Delete'
+        okText: t('btn_delete')
     });
 
     if (!confirmed) return;
@@ -41417,7 +41417,7 @@ window.deleteSignedDocument = async function (docId) {
 
     if (typeof updateProject === 'function') updateProject(currentProject);
     window.renderDocumentTracking(); // Refresh UI
-    if (window.showToast) window.showToast('Document removed', 'info');
+    if (window.showToast) window.showToast(t('toast_doc_removed'), 'info');
 };
 
 // Edit / View Detail Logic
@@ -41490,7 +41490,7 @@ window.openSignedDocumentDetail = function (docId) {
         if (typeof updateProject === 'function') updateProject(currentProject);
         window.renderDocumentTracking();
         document.getElementById('signed-doc-options-modal').remove();
-        if (window.showToast) window.showToast('Updated', 'success');
+        if (window.showToast) window.showToast(t('toast_updated'), 'success');
     };
 };
 
@@ -41568,7 +41568,7 @@ window.renderDocumentTracking = function () {
                 <td style="font-size: 12px;">${doc.date_signed ? new Date(doc.date_signed).toLocaleDateString() : '-'}</td>
                 <td style="font-size: 12px;">${expDateStr}</td>
                 <td style="text-align: right;">
-                     <button onclick="event.stopPropagation(); window.showToast('Downloading ${escapeHtml(doc.name)}...', 'info')" class="rfq-btn-icon" title="Download">⬇️</button>
+                     <button onclick="event.stopPropagation(); window.showToast(t('toast_downloading'),'info')" class="rfq-btn-icon" title="Download">⬇️</button>
                 </td>
             </tr>
         `;
@@ -41708,7 +41708,7 @@ window.renderDocumentTracking = function (targetId = 'fs-doctrack-content') {
                 <td style="font-size: 12px;">${doc.date_signed ? new Date(doc.date_signed).toLocaleDateString() : '-'}</td>
                 <td style="font-size: 12px;">${expDateStr}</td>
                 <td style="text-align: right;">
-                     <button onclick="event.stopPropagation(); window.showToast('Downloading ${escapeHtml(doc.name)}...', 'info')" class="rfq-btn-icon" title="Download">⬇️</button>
+                     <button onclick="event.stopPropagation(); window.showToast(t('toast_downloading'),'info')" class="rfq-btn-icon" title="Download">⬇️</button>
                 </td>
             </tr>
         `;
@@ -41887,7 +41887,7 @@ window.downloadGlobalDocument = function (docJsonOrObj) {
     if (typeof doc === 'string') {
         try { doc = JSON.parse(doc); } catch (e) {
             // Fallback if passing string failed
-            if (window.showToast) window.showToast('Error parsing document data', 'error');
+            if (window.showToast) window.showToast(t('toast_parse_error'), 'error');
             return;
         }
     }
@@ -41902,20 +41902,20 @@ window.downloadGlobalDocument = function (docJsonOrObj) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        if (window.showToast) window.showToast('Downloading...', 'success');
+        if (window.showToast) window.showToast(t('toast_downloading'), 'success');
     } else {
         console.warn('[Doc Manager] No URL found for document:', doc);
-        if (window.showToast) window.showToast('File path not found for this document.', 'warning');
+        if (window.showToast) window.showToast(t('toast_file_not_found'), 'warning');
     }
 };
 
 window.deleteGlobalDocument = async function (projectId, docId) {
     // Custom confirm dialog
     const confirmed = await window.showConfirmDialog({
-        title: 'Delete Document',
-        message: 'Are you sure you want to permanently delete this document?',
+        title: t('dialog_delete_document'),
+        message: t('dialog_delete_document_perm_msg'),
         type: 'danger',
-        okText: 'Delete',
+        okText: t('btn_delete'),
         cancelText: 'Cancel'
     });
 
@@ -41928,7 +41928,7 @@ window.deleteGlobalDocument = async function (projectId, docId) {
     if (Array.isArray(proj.final_documents)) {
         proj.final_documents = proj.final_documents.filter(d => String(d.id) !== String(docId));
         window.RFQData.updateProject(proj);
-        window.showToast('Document deleted', 'success');
+        window.showToast(t('toast_doc_deleted'), 'success');
         window.renderGlobalDocumentManager(); // Refresh view
     }
 };
@@ -42410,7 +42410,7 @@ window.renderSupplierInteraction = async function () {
                 const portalLink = `${location.origin}/portal/${id}/`;
                 // Portal + Copy
                 btns.push(`<button class="btn-sm sim-btn-portal" onclick="event.stopPropagation();window.open('${portalLink}','_blank')" title="Open Supplier Portal">Portal</button>`);
-                btns.push(`<button class="btn-sm sim-btn-copy" onclick="event.stopPropagation();navigator.clipboard.writeText('${portalLink}');window.showToast('Link copied!','success')" title="Copy portal link">Copy</button>`);
+                btns.push(`<button class="btn-sm sim-btn-copy" onclick="event.stopPropagation();navigator.clipboard.writeText('${portalLink}');window.showToast(t('toast_copied'),'success')" title="Copy portal link">Copy</button>`);
                 // Review — always available
                 btns.push(`<button class="btn-sm sim-btn-review" onclick="event.stopPropagation();window.reviewSupplierSubmission('${id}')">Review</button>`);
                 // Update
@@ -42536,7 +42536,7 @@ window.renderSupplierInteraction = async function () {
                         <h4>Portal Link</h4>
                         <div class="sim-portal-url">
                             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${link}</span>
-                            <button onclick="navigator.clipboard.writeText('${link}');window.showToast('Copied!','success')" title="Copy">&#128203;</button>
+                            <button onclick="navigator.clipboard.writeText('${link}');window.showToast(t('toast_copied'),'success')" title="Copy">&#128203;</button>
                         </div>
                     </div>
                     <div class="sim-expand-section">
